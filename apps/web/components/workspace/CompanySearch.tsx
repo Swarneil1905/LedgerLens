@@ -90,7 +90,7 @@ export function CompanySearch() {
         />
       </div>
       {error ? (
-        <p style={{ color: "var(--ll-danger)", marginTop: 12, fontSize: 14 }}>{error}</p>
+        <p style={{ color: "var(--ll-negative)", marginTop: 12, fontSize: "var(--ll-text-sm)" }}>{error}</p>
       ) : null}
       <div style={{ marginTop: 16, display: "grid", gap: 8 }}>
         {loading ? <div className="skeleton" style={{ height: 40 }} /> : null}

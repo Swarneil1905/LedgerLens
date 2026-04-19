@@ -6,10 +6,10 @@ import type { SourceCard } from "@ledgerlens/types/source";
 import { useCallback, useMemo, useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { useWorkspaceUi } from "@/components/layout/WorkspaceStateProvider";
+import { MessageThread } from "@/components/chat/MessageThread";
 import { getApiBaseUrl } from "@/lib/api-client";
 import { mapChart, mapSource } from "@/lib/mappers";
 import { readChatSseStream } from "@/lib/streaming";
-import { MessageThread } from "@/components/chat/MessageThread";
 
 type ChatSessionPanelProps = {
   sessionId: string;
@@ -138,59 +138,104 @@ export function ChatSessionPanel({ sessionId, ticker, initialMessages }: ChatSes
 
   return (
     <div className="page-grid" style={{ minHeight: "100%" }}>
-      <MessageThread messages={displayMessages} />
+      <MessageThread messages={displayMessages} isStreaming={isStreaming} />
       {error ? (
         <div
-          className="panel"
           style={{
-            padding: 14,
-            borderColor: "var(--ll-danger)",
-            color: "var(--ll-danger)",
-            fontSize: 14
+            padding: "14px 16px",
+            borderRadius: "var(--ll-radius-md)",
+            border: "1px solid var(--ll-border-default)",
+            background: "var(--ll-bg-surface)",
+            color: "var(--ll-negative)",
+            fontSize: "var(--ll-text-sm)",
+            lineHeight: "var(--ll-text-sm-lh)"
           }}
         >
           {error}
         </div>
       ) : null}
-      <div style={{ position: "sticky", bottom: 0, paddingBottom: 8 }}>
+      <div
+        style={{
+          position: "sticky",
+          bottom: 0,
+          marginTop: "auto",
+          paddingTop: 8,
+          background: "color-mix(in oklab, var(--ll-bg-surface) 88%, transparent)",
+          borderTop: "1px solid var(--ll-border-hairline)",
+          backdropFilter: "blur(8px)"
+        }}
+      >
         <form
-          className="panel"
-          style={{ padding: 14, display: "flex", gap: 12, alignItems: "center" }}
           onSubmit={(e) => {
             e.preventDefault();
             void runQuery();
           }}
+          style={{ display: "flex", gap: 10, alignItems: "flex-end", padding: "16px 0 0" }}
         >
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            rows={3}
-            disabled={isStreaming}
-            placeholder="Ask a grounded question about filings, macro, or news…"
-            style={{
-              width: "100%",
-              resize: "none",
-              border: "none",
-              outline: "none",
-              background: "transparent",
-              color: "var(--ll-text-primary)"
-            }}
-          />
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              disabled={isStreaming}
+              placeholder="Ask about filings, macro, or news…"
+              rows={2}
+              style={{
+                width: "100%",
+                minHeight: "var(--ll-input-height)",
+                maxHeight: 120,
+                resize: "vertical" as const,
+                padding: "10px 14px",
+                borderRadius: "var(--ll-radius-md)",
+                border: "1px solid var(--ll-border-default)",
+                background: "var(--ll-bg-elevated)",
+                color: "var(--ll-text-primary)",
+                fontSize: "var(--ll-text-sm)",
+                lineHeight: "var(--ll-text-sm-lh)",
+                fontFamily: "var(--ll-font-ui)",
+                outline: "none",
+                transition: "border-color 150ms ease, box-shadow 150ms ease",
+                boxShadow: "none"
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = "var(--ll-accent-border)";
+                e.target.style.boxShadow = "var(--ll-glow-accent)";
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = "var(--ll-border-default)";
+                e.target.style.boxShadow = "none";
+              }}
+            />
+            <div
+              className="mono"
+              style={{
+                fontSize: "var(--ll-text-2xs)",
+                color: "var(--ll-text-tertiary)",
+                letterSpacing: "0.04em"
+              }}
+            >
+              Grounded on SEC, FRED, and news where indexed for {ticker}
+            </div>
+          </div>
           <button
             type="submit"
             disabled={isStreaming}
             aria-busy={isStreaming}
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: "var(--ll-radius-md)",
+              width: 32,
+              height: 32,
+              flexShrink: 0,
+              borderRadius: "var(--ll-radius-sm)",
               border: "none",
               background: "var(--ll-accent)",
               color: "var(--ll-text-inverse)",
-              opacity: isStreaming ? 0.6 : 1
+              display: "grid",
+              placeItems: "center",
+              cursor: isStreaming ? "default" : "pointer",
+              opacity: isStreaming ? 0.55 : 1,
+              transition: "background 150ms ease, opacity 150ms ease"
             }}
           >
-            <ArrowUp size={18} />
+            <ArrowUp size={16} strokeWidth={1.5} />
           </button>
         </form>
       </div>

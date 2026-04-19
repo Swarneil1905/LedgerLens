@@ -41,14 +41,14 @@ export function BookmarkEvidenceButton({ sourceId }: { sourceId: string }) {
           background: "var(--ll-bg-overlay)",
           color: "var(--ll-text-secondary)",
           cursor: saved ? "default" : "pointer",
-          fontSize: 12
+          fontSize: "var(--ll-text-xs)"
         }}
       >
-        <Bookmark size={14} />
+        <Bookmark size={14} strokeWidth={1.5} />
         {saved ? "Saved" : "Save evidence"}
       </button>
       {error ? (
-        <span style={{ marginLeft: 8, color: "var(--ll-danger)", fontSize: 12 }}>{error}</span>
+        <span style={{ marginLeft: 8, color: "var(--ll-negative)", fontSize: "var(--ll-text-xs)" }}>{error}</span>
       ) : null}
     </div>
   );

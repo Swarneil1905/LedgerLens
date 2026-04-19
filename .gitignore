@@ -10,3 +10,8 @@ __pycache__
 .ruff_cache
 .env
 .env.local
+
+# Local UI / design prompts (keep out of remote)
+ledgerlens_ui_design_system_prompt.md
+*_ui_design_system*.md
+*_design_system_prompt.md

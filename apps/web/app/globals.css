@@ -1,38 +1,87 @@
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 :root {
-  --ll-font-sans: "Geist", "Geist Fallback", system-ui, sans-serif;
-  --ll-font-mono: "JetBrains Mono", "Fira Code", monospace;
+  /* Backgrounds */
   --ll-bg-base: oklch(0.12 0.005 270);
-  --ll-bg-surface: oklch(0.15 0.005 270);
-  --ll-bg-elevated: oklch(0.18 0.006 270);
-  --ll-bg-overlay: oklch(0.22 0.006 270);
-  --ll-border-subtle: oklch(0.26 0.005 270 / 0.6);
-  --ll-border-default: oklch(0.3 0.006 270);
-  --ll-border-strong: oklch(0.38 0.007 270);
-  --ll-text-primary: oklch(0.95 0.005 270);
-  --ll-text-secondary: oklch(0.7 0.008 270);
-  --ll-text-tertiary: oklch(0.5 0.008 270);
-  --ll-text-inverse: oklch(0.1 0.005 270);
-  --ll-accent: oklch(0.72 0.18 200);
-  --ll-accent-subtle: oklch(0.72 0.18 200 / 0.12);
-  --ll-accent-hover: oklch(0.78 0.18 200);
-  --ll-success: oklch(0.72 0.15 145);
+  --ll-bg-surface: oklch(0.15 0.006 270);
+  --ll-bg-elevated: oklch(0.19 0.007 270);
+  --ll-bg-overlay: oklch(0.23 0.007 270);
+
+  /* Borders */
+  --ll-border-hairline: oklch(0.28 0.005 270 / 0.5);
+  --ll-border-default: oklch(0.32 0.006 270);
+  --ll-border-strong: oklch(0.42 0.008 270);
+
+  /* Text */
+  --ll-text-primary: oklch(0.95 0.004 270);
+  --ll-text-secondary: oklch(0.68 0.008 270);
+  --ll-text-tertiary: oklch(0.48 0.006 270);
+  --ll-text-inverse: oklch(0.08 0.004 270);
+
+  /* Accent */
+  --ll-accent: oklch(0.72 0.17 200);
+  --ll-accent-dim: oklch(0.72 0.17 200 / 0.15);
+  --ll-accent-hover: oklch(0.79 0.17 200);
+  --ll-accent-border: oklch(0.72 0.17 200 / 0.35);
+
+  /* Semantic (data) */
+  --ll-positive: oklch(0.72 0.15 145);
+  --ll-negative: oklch(0.65 0.2 25);
   --ll-warning: oklch(0.78 0.16 80);
-  --ll-danger: oklch(0.65 0.2 25);
-  --ll-source-filing: oklch(0.7 0.14 250);
-  --ll-source-macro: oklch(0.72 0.15 145);
-  --ll-source-news: oklch(0.72 0.16 55);
-  --ll-source-chart: oklch(0.72 0.18 200);
-  --ll-shadow-1: 0 1px 2px oklch(0 0 0 / 0.3);
-  --ll-shadow-2: 0 4px 12px oklch(0 0 0 / 0.4), 0 1px 3px oklch(0 0 0 / 0.3);
-  --ll-shadow-3: 0 12px 32px oklch(0 0 0 / 0.5), 0 4px 8px oklch(0 0 0 / 0.3);
-  --ll-radius-sm: 6px;
-  --ll-radius-md: 10px;
-  --ll-radius-lg: 16px;
+  --ll-neutral-delta: oklch(0.6 0 0);
+
+  /* Source identity */
+  --ll-source-sec: oklch(0.68 0.14 250);
+  --ll-source-fred: oklch(0.72 0.15 145);
+  --ll-source-news: oklch(0.74 0.16 55);
+  --ll-source-chart: oklch(0.72 0.17 200);
+
+  /* Elevation */
+  --ll-shadow-1: 0 1px 2px oklch(0 0 0 / 0.4);
+  --ll-shadow-2: 0 4px 16px oklch(0 0 0 / 0.5), 0 1px 3px oklch(0 0 0 / 0.35);
+  --ll-shadow-3: 0 16px 40px oklch(0 0 0 / 0.6), 0 4px 10px oklch(0 0 0 / 0.35);
+  --ll-glow-accent: 0 0 0 1px var(--ll-accent-border), 0 0 16px oklch(0.72 0.17 200 / 0.12);
+
+  /* Radius */
+  --ll-radius-xs: 2px;
+  --ll-radius-sm: 4px;
+  --ll-radius-md: 6px;
+  --ll-radius-lg: 10px;
+
+  /* Layout */
   --ll-sidebar-width: 220px;
   --ll-topbar-height: 52px;
-  --ll-drawer-width: 320px;
+  --ll-drawer-width: 340px;
+  --ll-input-height: 40px;
+  --ll-panel-gap: 1px;
+
+  /* Typography */
+  --ll-font-ui: "Geist", "Geist Fallback", system-ui, sans-serif;
+  --ll-font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  --ll-text-2xs: 0.625rem;
+  --ll-text-2xs-lh: 0.9rem;
+  --ll-text-xs: 0.75rem;
+  --ll-text-xs-lh: 1.1rem;
+  --ll-text-sm: 0.875rem;
+  --ll-text-sm-lh: 1.3rem;
+  --ll-text-base: 1rem;
+  --ll-text-base-lh: 1.6rem;
+  --ll-text-lg: 1.125rem;
+  --ll-text-lg-lh: 1.7rem;
+  --ll-text-xl: 1.25rem;
+  --ll-text-xl-lh: 1.75rem;
+  --ll-text-2xl: 1.5rem;
+  --ll-text-2xl-lh: 2rem;
+  --ll-text-3xl: 1.875rem;
+  --ll-text-3xl-lh: 2.25rem;
+
+  /* Legacy aliases (existing components) */
+  --ll-border-subtle: var(--ll-border-hairline);
+  --ll-success: var(--ll-positive);
+  --ll-danger: var(--ll-negative);
+  --ll-accent-subtle: var(--ll-accent-dim);
+  --ll-source-filing: var(--ll-source-sec);
+  --ll-source-macro: var(--ll-source-fred);
 }
 
 * {
@@ -43,11 +92,10 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background:
-    radial-gradient(circle at top right, oklch(0.26 0.07 210 / 0.12), transparent 24%),
-    linear-gradient(180deg, oklch(0.13 0.01 270), var(--ll-bg-base));
+  height: 100%;
+  background: var(--ll-bg-base);
   color: var(--ll-text-primary);
-  font-family: var(--ll-font-sans);
+  font-family: var(--ll-font-ui);
 }
 
 a {
@@ -56,28 +104,30 @@ a {
 }
 
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 
 .page-grid {
   display: grid;
-  gap: 20px;
+  gap: 24px;
 }
 
 .panel {
   border: 1px solid var(--ll-border-default);
   border-radius: var(--ll-radius-lg);
-  background: color-mix(in oklab, var(--ll-bg-elevated) 88%, transparent);
+  background: var(--ll-bg-elevated);
   box-shadow: var(--ll-shadow-1);
 }
 
 .section-title {
   margin: 0;
-  font-size: 1.25rem;
-  line-height: 1.75rem;
+  font-size: var(--ll-text-xl);
+  line-height: var(--ll-text-xl-lh);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  color: var(--ll-text-primary);
 }
 
 .muted {
@@ -86,6 +136,15 @@ input {
 
 .mono {
   font-family: var(--ll-font-mono);
+}
+
+.ll-section-label {
+  font-size: var(--ll-text-2xs);
+  line-height: var(--ll-text-2xs-lh);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ll-text-tertiary);
+  font-weight: 600;
 }
 
 .skeleton {
@@ -97,14 +156,25 @@ input {
     oklch(0.21 0.01 270) 75%
   );
   background-size: 200% 100%;
-  animation: pulse 1.5s ease-in-out infinite;
+  animation: ll-skeleton-pulse 1.5s ease-in-out infinite;
 }
 
-@keyframes pulse {
+@keyframes ll-skeleton-pulse {
   0% {
     background-position: 200% 0;
   }
   100% {
     background-position: -200% 0;
+  }
+}
+
+@keyframes ll-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
