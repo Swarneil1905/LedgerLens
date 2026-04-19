@@ -1,0 +1,13 @@
+{
+  "name": "@ledgerlens/types",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./source": "./source.ts",
+    "./chat": "./chat.ts",
+    "./workspace": "./workspace.ts",
+    "./chart": "./chart.ts",
+    "./result": "./result.ts"
+  }
+}
