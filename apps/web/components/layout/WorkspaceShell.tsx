@@ -3,7 +3,13 @@ import { RightDrawer } from "@/components/layout/RightDrawer";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 
-export function WorkspaceShell({ children }: { children: ReactNode }) {
+export function WorkspaceShell({
+  children,
+  workspaceHref
+}: {
+  children: ReactNode;
+  workspaceHref?: string;
+}) {
   return (
     <div
       style={{
@@ -14,7 +20,7 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
         overflow: "hidden"
       }}
     >
-      <Sidebar />
+      <Sidebar workspaceHref={workspaceHref ?? "/workspace/apple"} />
       <TopBar />
       <main style={{ gridColumn: "2 / 3", gridRow: "2 / 3", overflowY: "auto", padding: 24 }}>
         {children}

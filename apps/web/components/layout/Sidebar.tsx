@@ -1,14 +1,24 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Bookmark, Building2, FolderOpen, PanelsTopLeft } from "lucide-react";
 
 const items = [
-  { href: "/", label: "Home", icon: PanelsTopLeft },
-  { href: "/saved", label: "Saved", icon: FolderOpen },
-  { href: "/bookmarks", label: "Bookmarks", icon: Bookmark },
-  { href: "/workspace/apple", label: "Workspace", icon: Building2 }
+  { href: "/", label: "Home", icon: PanelsTopLeft, match: (path: string) => path === "/" },
+  { href: "/saved", label: "Saved", icon: FolderOpen, match: (path: string) => path.startsWith("/saved") },
+  {
+    href: "/bookmarks",
+    label: "Bookmarks",
+    icon: Bookmark,
+    match: (path: string) => path.startsWith("/bookmarks")
+  }
 ];
 
-export function Sidebar() {
+export function Sidebar({ workspaceHref }: { workspaceHref?: string }) {
+  const pathname = usePathname();
+  const workspaceLink = workspaceHref ?? "/workspace/apple";
+
   return (
     <aside
       style={{
@@ -28,25 +38,51 @@ export function Sidebar() {
         </div>
       </div>
       <nav style={{ display: "grid", gap: 8 }}>
-        {items.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 12px",
-              borderRadius: "var(--ll-radius-sm)",
-              color: "var(--ll-text-secondary)",
-              borderLeft: href === "/workspace/apple" ? "2px solid var(--ll-accent)" : "2px solid transparent",
-              background: href === "/workspace/apple" ? "var(--ll-bg-elevated)" : "transparent"
-            }}
-          >
-            <Icon size={16} />
-            <span>{label}</span>
-          </Link>
-        ))}
+        {items.map(({ href, label, icon: Icon, match }) => {
+          const active = match(pathname);
+          return (
+            <Link
+              key={href}
+              href={href}
+              data-active={active}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "10px 12px",
+                borderRadius: "var(--ll-radius-sm)",
+                color: active ? "var(--ll-text-primary)" : "var(--ll-text-secondary)",
+                borderLeft: active ? "2px solid var(--ll-accent)" : "2px solid transparent",
+                background: active ? "var(--ll-bg-elevated)" : "transparent",
+                paddingLeft: active ? 10 : 12
+              }}
+            >
+              <Icon size={16} />
+              <span>{label}</span>
+            </Link>
+          );
+        })}
+        <Link
+          href={workspaceLink}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "10px 12px",
+            borderRadius: "var(--ll-radius-sm)",
+            color: pathname.startsWith("/workspace/")
+              ? "var(--ll-text-primary)"
+              : "var(--ll-text-secondary)",
+            borderLeft: pathname.startsWith("/workspace/")
+              ? "2px solid var(--ll-accent)"
+              : "2px solid transparent",
+            background: pathname.startsWith("/workspace/") ? "var(--ll-bg-elevated)" : "transparent",
+            paddingLeft: pathname.startsWith("/workspace/") ? 10 : 12
+          }}
+        >
+          <Building2 size={16} />
+          <span>Company</span>
+        </Link>
       </nav>
     </aside>
   );

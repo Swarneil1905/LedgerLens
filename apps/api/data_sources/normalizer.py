@@ -1,4 +1,5 @@
 from data_sources import fred, news_a, news_b, news_c, sec
+from memory import persistence
 from schemas.source import RefreshSourcesResponse, SourceResponse
 
 
@@ -15,4 +16,5 @@ async def gather_company_sources(ticker: str) -> list[SourceResponse]:
 
 async def refresh_company_sources(ticker: str) -> RefreshSourcesResponse:
     sources = await gather_company_sources(ticker)
+    persistence.replace_company_sources(ticker, sources)
     return RefreshSourcesResponse(status="ok", sources_indexed=len(sources))

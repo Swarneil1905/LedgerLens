@@ -1,4 +1,4 @@
-import { GeistSans } from "@vercel/geist";
+import { GeistSans } from "geist/font/sans";
 import type { ReactNode } from "react";
 import "./globals.css";
 

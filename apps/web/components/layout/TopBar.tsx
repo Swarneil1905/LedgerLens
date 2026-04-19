@@ -1,6 +1,11 @@
+"use client";
+
 import { CalendarRange, Search, SlidersHorizontal } from "lucide-react";
+import { useWorkspaceUi } from "@/components/layout/WorkspaceStateProvider";
 
 export function TopBar() {
+  const { title, subtitle } = useWorkspaceUi();
+
   return (
     <header
       style={{
@@ -15,9 +20,9 @@ export function TopBar() {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <div style={{ fontWeight: 600 }}>Apple Inc. / Workspace</div>
+        <div style={{ fontWeight: 600 }}>{title}</div>
         <div className="muted mono" style={{ fontSize: 12 }}>
-          AAPL
+          {subtitle}
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

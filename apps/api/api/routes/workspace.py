@@ -1,9 +1,14 @@
 from fastapi import APIRouter, HTTPException
 
-from memory.persistence import create_workspace, get_workspace
+from memory.persistence import create_workspace, get_workspace, list_workspaces
 from schemas.workspace import WorkspaceCreateRequest, WorkspaceResponse
 
 router = APIRouter()
+
+
+@router.get("", response_model=list[WorkspaceResponse])
+async def list_workspace_route() -> list[WorkspaceResponse]:
+    return list_workspaces()
 
 
 @router.post("/create", response_model=WorkspaceResponse)

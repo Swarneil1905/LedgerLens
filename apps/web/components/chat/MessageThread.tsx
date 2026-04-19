@@ -13,6 +13,11 @@ export function MessageThread({ messages }: { messages: ChatMessage[] }) {
               {message.role === "user" ? "QUERY" : "ANALYSIS"}
             </div>
             <p style={{ margin: "12px 0 0", lineHeight: 1.75, fontSize: 16 }}>{message.content}</p>
+            {message.sources?.length ? (
+              <p className="muted mono" style={{ marginTop: 10, fontSize: 12 }}>
+                Evidence: {message.sources.length} linked sources (see drawer)
+              </p>
+            ) : null}
             {message.followUps ? (
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 16 }}>
                 {message.followUps.map((item) => (

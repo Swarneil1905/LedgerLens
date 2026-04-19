@@ -1,0 +1,28 @@
+name: Backend CI
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install ruff pytest
+      - name: Ruff
+        run: ruff check .
+      - name: Pytest
+        run: pytest tests --tb=short
+      - name: Import smoke
+        run: python -c "from main import app; print('startup ok')"

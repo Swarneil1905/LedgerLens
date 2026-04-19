@@ -1,14 +1,32 @@
-import { MessageThread } from "@/components/chat/MessageThread";
-import { QueryInput } from "@/components/chat/QueryInput";
-import { mockWorkspace } from "@/lib/mock-data";
+import { WorkspaceHeaderHydrator } from "@/components/layout/WorkspaceHeaderHydrator";
+import { ChatSessionPanel } from "@/components/chat/ChatSessionPanel";
+import { apiGetJson } from "@/lib/api-client";
+import { mapChatMessage } from "@/lib/mappers";
 
-export default function ChatWorkspacePage() {
+type PageProps = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function ChatWorkspacePage({ params, searchParams }: PageProps) {
+  const { id } = await params;
+  const query = await searchParams;
+  const tickerRaw = query.ticker;
+  const ticker = typeof tickerRaw === "string" && tickerRaw.length > 0 ? tickerRaw : "AAPL";
+
+  let history: unknown[] = [];
+  try {
+    history = await apiGetJson<unknown[]>(`/chat/${id}/history`);
+  } catch {
+    history = [];
+  }
+
+  const initialMessages = history.map((row) => mapChatMessage(row as Record<string, unknown>));
+
   return (
-    <div className="page-grid" style={{ minHeight: "100%" }}>
-      <MessageThread messages={mockWorkspace.chatMessages} />
-      <div style={{ position: "sticky", bottom: 0, paddingBottom: 8 }}>
-        <QueryInput />
-      </div>
-    </div>
+    <>
+      <WorkspaceHeaderHydrator title={`${ticker} · Analysis session`} subtitle={ticker} />
+      <ChatSessionPanel sessionId={id} ticker={ticker} initialMessages={initialMessages} />
+    </>
   );
 }

@@ -12,7 +12,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="LedgerLens API", version="0.0.1", lifespan=lifespan)
+app = FastAPI(title="LedgerLens API", version="1.0.0", lifespan=lifespan)
 register_middleware(app)
 app.add_middleware(
     CORSMiddleware,

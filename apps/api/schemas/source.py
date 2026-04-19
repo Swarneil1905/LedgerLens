@@ -31,6 +31,7 @@ class BookmarkResponse(BaseModel):
     id: str
     source_id: str
     created_at: datetime
+    source: SourceResponse | None = None
 
 
 class RefreshSourcesResponse(BaseModel):

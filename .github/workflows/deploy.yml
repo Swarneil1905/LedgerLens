@@ -1,0 +1,11 @@
+name: Deploy (manual)
+on:
+  workflow_dispatch:
+
+jobs:
+  note:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: |
+          echo "Wire Vercel (web) and Render/Fly (api) project secrets in this workflow when ready."

@@ -17,3 +17,7 @@ line-length = 100
 [tool.pyright]
 pythonVersion = "3.11"
 typeCheckingMode = "strict"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

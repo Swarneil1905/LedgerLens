@@ -1,8 +1,14 @@
-import { mockWorkspace } from "@/lib/mock-data";
-import { SourceCard } from "@/components/sources/SourceCard";
+"use client";
+
+import { useWorkspaceUi } from "@/components/layout/WorkspaceStateProvider";
 import { ChartPanel } from "@/components/charts/ChartPanel";
+import { BookmarkEvidenceButton } from "@/components/sources/BookmarkEvidenceButton";
+import { SourceCard } from "@/components/sources/SourceCard";
 
 export function RightDrawer() {
+  const { drawerSources, drawerChart } = useWorkspaceUi();
+  const sources = drawerSources;
+
   return (
     <aside
       style={{
@@ -18,13 +24,22 @@ export function RightDrawer() {
           <p className="muted mono" style={{ fontSize: 11, letterSpacing: "0.06em" }}>
             EVIDENCE
           </p>
-          <div className="page-grid">
-            {mockWorkspace.sources.slice(0, 3).map((source) => (
-              <SourceCard key={source.id} source={source} />
-            ))}
-          </div>
+          {sources.length === 0 ? (
+            <div className="panel muted" style={{ padding: 16, marginTop: 12, fontSize: 14 }}>
+              Sources from the latest answer will appear here. Run a query in chat to populate this panel.
+            </div>
+          ) : (
+            <div className="page-grid" style={{ marginTop: 12 }}>
+              {sources.map((source) => (
+                <div key={source.id}>
+                  <SourceCard source={source} />
+                  <BookmarkEvidenceButton sourceId={source.id} />
+                </div>
+              ))}
+            </div>
+          )}
         </section>
-        <ChartPanel chart={mockWorkspace.charts[0]} />
+        {drawerChart ? <ChartPanel chart={drawerChart} /> : null}
       </div>
     </aside>
   );
