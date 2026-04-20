@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import "tailwindcss";
 
 :root {
   /* Backgrounds */
@@ -41,12 +41,14 @@
   --ll-shadow-2: 0 4px 16px oklch(0 0 0 / 0.5), 0 1px 3px oklch(0 0 0 / 0.35);
   --ll-shadow-3: 0 16px 40px oklch(0 0 0 / 0.6), 0 4px 10px oklch(0 0 0 / 0.35);
   --ll-glow-accent: 0 0 0 1px var(--ll-accent-border), 0 0 16px oklch(0.72 0.17 200 / 0.12);
+  --ll-glow-card: 0 0 0 1px oklch(0.95 0.01 270 / 0.08), 0 8px 32px oklch(0 0 0 / 0.4);
 
   /* Radius */
   --ll-radius-xs: 2px;
   --ll-radius-sm: 4px;
   --ll-radius-md: 6px;
   --ll-radius-lg: 10px;
+  --ll-radius-xl: 20px;
 
   /* Layout */
   --ll-sidebar-width: 220px;
@@ -56,8 +58,8 @@
   --ll-panel-gap: 1px;
 
   /* Typography */
-  --ll-font-ui: "Geist", "Geist Fallback", system-ui, sans-serif;
-  --ll-font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  --ll-font-ui: var(--font-geist-sans, "Geist"), "Geist Fallback", system-ui, sans-serif;
+  --ll-font-mono: var(--font-jetbrains-mono, "JetBrains Mono"), "Fira Code", ui-monospace, monospace;
   --ll-text-2xs: 0.625rem;
   --ll-text-2xs-lh: 0.9rem;
   --ll-text-xs: 0.75rem;
@@ -75,7 +77,7 @@
   --ll-text-3xl: 1.875rem;
   --ll-text-3xl-lh: 2.25rem;
 
-  /* Legacy aliases (existing components) */
+  /* Legacy aliases */
   --ll-border-subtle: var(--ll-border-hairline);
   --ll-success: var(--ll-positive);
   --ll-danger: var(--ll-negative);
@@ -88,6 +90,10 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 html,
 body {
   margin: 0;
@@ -96,6 +102,31 @@ body {
   background: var(--ll-bg-base);
   color: var(--ll-text-primary);
   font-family: var(--ll-font-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--ll-accent-dim);
+  color: var(--ll-text-primary);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ll-border-default);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ll-border-strong);
 }
 
 a {
@@ -159,6 +190,20 @@ textarea {
   animation: ll-skeleton-pulse 1.5s ease-in-out infinite;
 }
 
+.noise-overlay {
+  position: relative;
+}
+
+.noise-overlay::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.035;
+  pointer-events: none;
+  z-index: 1;
+}
+
 @keyframes ll-skeleton-pulse {
   0% {
     background-position: 200% 0;
@@ -176,5 +221,17 @@ textarea {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes border-beam-spin {
+  to {
+    --angle: 360deg;
   }
 }

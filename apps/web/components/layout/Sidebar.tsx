@@ -20,7 +20,7 @@ const navBase: CSSProperties = {
 };
 
 const items = [
-  { href: "/", label: "Home", icon: PanelsTopLeft, match: (path: string) => path === "/" },
+  { href: "/work", label: "Home", icon: PanelsTopLeft, match: (path: string) => path === "/work" },
   { href: "/saved", label: "Saved", icon: FolderOpen, match: (path: string) => path.startsWith("/saved") },
   {
     href: "/bookmarks",
