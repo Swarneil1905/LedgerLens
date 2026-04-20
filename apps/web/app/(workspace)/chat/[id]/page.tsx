@@ -25,7 +25,11 @@ export default async function ChatWorkspacePage({ params, searchParams }: PagePr
 
   return (
     <>
-      <WorkspaceHeaderHydrator title={`${ticker} · Analysis session`} subtitle={ticker} />
+      <WorkspaceHeaderHydrator
+        title={`${ticker} · Analysis session`}
+        subtitle={ticker}
+        breadcrumb={[{ label: ticker }, { label: "Analysis session" }]}
+      />
       <ChatSessionPanel sessionId={id} ticker={ticker} initialMessages={initialMessages} />
     </>
   );

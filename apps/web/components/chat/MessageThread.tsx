@@ -1,137 +1,106 @@
+"use client";
+
 import type { ChatMessage } from "@ledgerlens/types/chat";
+import { motion } from "motion/react";
+import { TrendingUp } from "lucide-react";
+
 import { FormattedAnswer } from "@/components/chat/FormattedAnswer";
+import { cn } from "@/lib/utils";
 
 type MessageThreadProps = {
   messages: ChatMessage[];
   isStreaming?: boolean;
+  onFollowUp?: (text: string) => void;
 };
 
-export function MessageThread({ messages, isStreaming }: MessageThreadProps) {
+export function MessageThread({ messages, isStreaming, onFollowUp }: MessageThreadProps) {
   const lastId = messages[messages.length - 1]?.id;
   const streamingAssistant = Boolean(isStreaming && lastId === "streaming-assistant");
 
   return (
-    <section
-      style={{
-        border: "1px solid var(--ll-border-default)",
-        borderRadius: "var(--ll-radius-lg)",
-        background: "var(--ll-bg-elevated)",
-        boxShadow: "var(--ll-shadow-1)",
-        overflow: "hidden"
-      }}
-    >
+    <section className="overflow-hidden rounded-[var(--ll-radius-lg)] border border-[var(--ll-border-default)] bg-[var(--ll-bg-elevated)] shadow-[var(--ll-shadow-1)]">
       {messages.map((message, index) => (
         <article
           key={message.id}
-          style={{
-            borderTop: index > 0 ? "1px solid var(--ll-border-hairline)" : "none"
-          }}
+          className={cn(index > 0 ? "border-t border-[var(--ll-border-hairline)]" : "")}
         >
-          {message.role === "user" ? (
-            <div style={{ padding: "20px 24px 16px" }}>
-              <div className="ll-section-label" style={{ marginBottom: 8, textAlign: "right" }}>
-                User query
-              </div>
-              <div
-                style={{
-                  marginLeft: 48,
-                  padding: "16px 20px",
-                  borderLeft: "2px solid var(--ll-border-default)",
-                  fontSize: "var(--ll-text-base)",
-                  lineHeight: "var(--ll-text-base-lh)",
-                  fontWeight: 400,
-                  fontFamily: "var(--ll-font-ui)",
-                  color: "var(--ll-text-secondary)"
-                }}
+            {message.role === "user" ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex justify-end px-6 py-5"
               >
-                {message.content}
-              </div>
-            </div>
-          ) : (
-            <div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "18px 24px 0"
-                }}
-              >
-                <span className="ll-section-label" style={{ letterSpacing: "0.1em" }}>
-                  LedgerLens answer
-                </span>
-                {streamingAssistant && message.id === "streaming-assistant" ? (
-                  <span
-                    className="mono"
-                    style={{
-                      fontSize: "var(--ll-text-2xs)",
-                      color: "var(--ll-text-tertiary)",
-                      letterSpacing: "0.04em"
-                    }}
-                  >
-                    Generating
-                  </span>
-                ) : null}
-              </div>
-              <div style={{ padding: "12px 24px 8px" }}>
-                <FormattedAnswer content={message.content} />
-              </div>
-              {message.sources?.length ? (
-                <div
-                  className="mono"
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "8px 24px",
-                    borderTop: "1px solid var(--ll-border-hairline)",
-                    fontSize: "var(--ll-text-xs)",
-                    color: "var(--ll-text-tertiary)"
-                  }}
-                >
-                  <span>{message.sources.length} sources linked</span>
-                  <span>Drawer</span>
+                <div className="ml-12 max-w-[80%] rounded-[var(--ll-radius-lg)] rounded-br-[var(--ll-radius-xs)] border border-[var(--ll-border-default)] bg-[var(--ll-bg-surface)] px-5 py-3">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ll-text-tertiary)]">
+                    User query
+                  </p>
+                  <p className="text-sm leading-relaxed text-[var(--ll-text-secondary)]">{message.content}</p>
                 </div>
-              ) : null}
-              {message.followUps?.length ? (
-                <div style={{ padding: "12px 24px 20px" }}>
-                  <div className="ll-section-label" style={{ marginBottom: 10, letterSpacing: "0.07em" }}>
-                    Follow-up questions
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.05 }}
+                className="px-6 py-5"
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-[var(--ll-radius-xs)] bg-[var(--ll-accent)]">
+                      <TrendingUp size={11} className="text-[var(--ll-text-inverse)]" strokeWidth={2} />
+                    </div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ll-text-tertiary)]">
+                      LedgerLens answer
+                    </p>
                   </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 8,
-                      overflowX: "auto",
-                      paddingBottom: 4
-                    }}
-                  >
-                    {message.followUps.map((item) => (
-                      <button
-                        key={item}
-                        type="button"
-                        style={{
-                          flex: "0 0 auto",
-                          padding: "6px 12px",
-                          border: "1px solid var(--ll-border-default)",
-                          borderRadius: "var(--ll-radius-sm)",
-                          background: "var(--ll-bg-surface)",
-                          fontSize: "var(--ll-text-xs)",
-                          fontWeight: 500,
-                          fontFamily: "var(--ll-font-ui)",
-                          color: "var(--ll-text-secondary)",
-                          whiteSpace: "nowrap",
-                          cursor: "default"
-                        }}
-                      >
-                        {item}
-                      </button>
-                    ))}
+                  <div className="flex items-center gap-2">
+                    {streamingAssistant && message.id === "streaming-assistant" ? (
+                      <span className="font-mono text-[10px] tracking-[0.04em] text-[var(--ll-text-tertiary)]">
+                        Generating
+                      </span>
+                    ) : null}
+                    {message.sources?.length ? (
+                      <span className="font-mono text-[10px] text-[var(--ll-text-tertiary)]">
+                        {message.sources.length} sources linked
+                      </span>
+                    ) : null}
                   </div>
                 </div>
-              ) : null}
-            </div>
-          )}
+
+                <div className="overflow-hidden rounded-[var(--ll-radius-lg)] border border-[var(--ll-border-default)] bg-[var(--ll-bg-surface)]">
+                  <div className="px-5 py-4">
+                    <FormattedAnswer content={message.content} />
+                  </div>
+
+                  {message.followUps?.length ? (
+                    <div className="border-t border-[var(--ll-border-hairline)] px-5 py-3">
+                      <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ll-text-tertiary)]">
+                        Follow-up questions
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {message.followUps.map((item, i) => (
+                          <motion.button
+                            key={item}
+                            type="button"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.25, delay: 0.2 + i * 0.07 }}
+                            onClick={() => onFollowUp?.(item)}
+                            className={cn(
+                              "cursor-pointer rounded-[var(--ll-radius-md)] border border-[var(--ll-border-default)] bg-[var(--ll-bg-overlay)] px-3 py-1.5 text-left text-xs font-medium text-[var(--ll-text-secondary)] transition-all duration-150",
+                              "hover:border-[var(--ll-accent-border)] hover:bg-[var(--ll-accent-dim)] hover:text-[var(--ll-text-primary)]"
+                            )}
+                          >
+                            {item}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </motion.div>
+            )}
         </article>
       ))}
     </section>

@@ -4,12 +4,16 @@ import type { ChatMessage } from "@ledgerlens/types/chat";
 import type { CompanyChart } from "@ledgerlens/types/chart";
 import type { SourceCard } from "@ledgerlens/types/source";
 import { useCallback, useMemo, useState } from "react";
-import { ArrowUp } from "lucide-react";
-import { useWorkspaceUi } from "@/components/layout/WorkspaceStateProvider";
+import { motion } from "motion/react";
+import { Send } from "lucide-react";
+
+import { BorderBeam } from "@/components/effects/BorderBeam";
 import { MessageThread } from "@/components/chat/MessageThread";
+import { useWorkspaceUi } from "@/components/layout/WorkspaceStateProvider";
 import { getApiBaseUrl } from "@/lib/api-client";
 import { mapChart, mapSource } from "@/lib/mappers";
 import { readChatSseStream } from "@/lib/streaming";
+import { cn } from "@/lib/utils";
 
 type ChatSessionPanelProps = {
   sessionId: string;
@@ -17,15 +21,20 @@ type ChatSessionPanelProps = {
   initialMessages: ChatMessage[];
 };
 
+const SOURCE_CHIPS: { label: string; color: string }[] = [
+  { label: "SEC", color: "var(--ll-source-sec)" },
+  { label: "FRED", color: "var(--ll-source-fred)" },
+  { label: "NEWS", color: "var(--ll-source-news)" }
+];
+
 export function ChatSessionPanel({ sessionId, ticker, initialMessages }: ChatSessionPanelProps) {
   const { setDrawer } = useWorkspaceUi();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
-  const [draft, setDraft] = useState(
-    "What changed in the latest filing versus the prior quarter?"
-  );
+  const [draft, setDraft] = useState("What changed in the latest filing versus the prior quarter?");
   const [streamingText, setStreamingText] = useState("");
   const [isStreaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [inputFocused, setInputFocused] = useState(false);
 
   const displayMessages = useMemo(() => {
     if (!streamingText) {
@@ -137,106 +146,96 @@ export function ChatSessionPanel({ sessionId, ticker, initialMessages }: ChatSes
   }, [draft, isStreaming, sessionId, setDrawer, ticker]);
 
   return (
-    <div className="page-grid" style={{ minHeight: "100%" }}>
-      <MessageThread messages={displayMessages} isStreaming={isStreaming} />
+    <div className="flex min-h-full flex-col px-6 py-5">
+      <MessageThread
+        messages={displayMessages}
+        isStreaming={isStreaming}
+        onFollowUp={(text) => setDraft(text)}
+      />
+
       {error ? (
-        <div
-          style={{
-            padding: "14px 16px",
-            borderRadius: "var(--ll-radius-md)",
-            border: "1px solid var(--ll-border-default)",
-            background: "var(--ll-bg-surface)",
-            color: "var(--ll-negative)",
-            fontSize: "var(--ll-text-sm)",
-            lineHeight: "var(--ll-text-sm-lh)"
-          }}
-        >
+        <div className="mt-4 rounded-[var(--ll-radius-md)] border border-[var(--ll-border-default)] bg-[var(--ll-bg-surface)] px-4 py-3.5 text-sm text-[var(--ll-negative)]">
           {error}
         </div>
       ) : null}
-      <div
-        style={{
-          position: "sticky",
-          bottom: 0,
-          marginTop: "auto",
-          paddingTop: 8,
-          background: "color-mix(in oklab, var(--ll-bg-surface) 88%, transparent)",
-          borderTop: "1px solid var(--ll-border-hairline)",
-          backdropFilter: "blur(8px)"
-        }}
-      >
+
+      <div className="sticky bottom-0 z-10 mt-auto border-t border-[var(--ll-border-hairline)] bg-[var(--ll-bg-base)]/95 px-0 pb-2 pt-4 backdrop-blur-xl">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             void runQuery();
           }}
-          style={{ display: "flex", gap: 10, alignItems: "flex-end", padding: "16px 0 0" }}
+          className="flex flex-col gap-3"
         >
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-            <textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              disabled={isStreaming}
-              placeholder="Ask about filings, macro, or news…"
-              rows={2}
-              style={{
-                width: "100%",
-                minHeight: "var(--ll-input-height)",
-                maxHeight: 120,
-                resize: "vertical" as const,
-                padding: "10px 14px",
-                borderRadius: "var(--ll-radius-md)",
-                border: "1px solid var(--ll-border-default)",
-                background: "var(--ll-bg-elevated)",
-                color: "var(--ll-text-primary)",
-                fontSize: "var(--ll-text-sm)",
-                lineHeight: "var(--ll-text-sm-lh)",
-                fontFamily: "var(--ll-font-ui)",
-                outline: "none",
-                transition: "border-color 150ms ease, box-shadow 150ms ease",
-                boxShadow: "none"
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = "var(--ll-accent-border)";
-                e.target.style.boxShadow = "var(--ll-glow-accent)";
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = "var(--ll-border-default)";
-                e.target.style.boxShadow = "none";
-              }}
-            />
-            <div
-              className="mono"
-              style={{
-                fontSize: "var(--ll-text-2xs)",
-                color: "var(--ll-text-tertiary)",
-                letterSpacing: "0.04em"
-              }}
-            >
+          <div className="flex flex-wrap items-center gap-2">
+            {SOURCE_CHIPS.map((src) => (
+              <button
+                key={src.label}
+                type="button"
+                className={cn(
+                  "flex h-6 cursor-pointer items-center gap-1.5 rounded-[var(--ll-radius-xs)] border border-[var(--ll-border-default)] bg-[var(--ll-bg-elevated)] px-2.5 text-[10px] font-semibold tracking-[0.07em] transition-colors duration-150 hover:border-[var(--ll-border-strong)]"
+                )}
+                style={{ color: src.color }}
+              >
+                <span className="h-1.5 w-1.5 rounded-full" style={{ background: src.color }} />
+                {src.label}
+              </button>
+            ))}
+            <span className="ml-auto font-mono text-[10px] text-[var(--ll-text-tertiary)]">
               Grounded on SEC, FRED, and news where indexed for {ticker}
+            </span>
+          </div>
+
+          <div className="flex items-end gap-3">
+            <div
+              className={cn(
+                "relative min-w-0 flex-1 overflow-hidden rounded-[var(--ll-radius-lg)] border bg-[var(--ll-bg-elevated)] transition-all duration-200",
+                inputFocused
+                  ? "border-[var(--ll-accent-border)] shadow-[var(--ll-glow-accent)]"
+                  : "border-[var(--ll-border-default)]"
+              )}
+            >
+              {inputFocused ? <BorderBeam colorTo="var(--ll-accent)" duration={8} size={150} /> : null}
+              <textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onFocus={() => setInputFocused(true)}
+                onBlur={() => setInputFocused(false)}
+                disabled={isStreaming}
+                placeholder="Ask about filings, macro, or news…"
+                rows={2}
+                className={cn(
+                  "w-full resize-none border-none bg-transparent px-4 pb-10 pt-3 font-[var(--ll-font-ui)] text-sm leading-relaxed text-[var(--ll-text-primary)] outline-none",
+                  "placeholder:text-[var(--ll-text-tertiary)] disabled:opacity-50"
+                )}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    void runQuery();
+                  }
+                }}
+              />
+              <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                <span className="hidden text-[10px] text-[var(--ll-text-tertiary)] sm:inline">
+                  ⏎ Send · ⇧⏎ Newline
+                </span>
+                <motion.button
+                  type="submit"
+                  disabled={isStreaming || !draft.trim()}
+                  {...(!(isStreaming || !draft.trim())
+                    ? { whileHover: { scale: 1.05 }, whileTap: { scale: 0.95 } }
+                    : {})}
+                  aria-busy={isStreaming}
+                  className={cn(
+                    "flex h-8 w-8 cursor-pointer items-center justify-center rounded-[var(--ll-radius-md)] bg-[var(--ll-accent)] text-[var(--ll-text-inverse)] shadow-[0_0_12px_rgba(45,212,191,0.3)] transition-all duration-150",
+                    "hover:shadow-[0_0_20px_rgba(45,212,191,0.5)] disabled:cursor-not-allowed disabled:opacity-30"
+                  )}
+                >
+                  <Send size={13} strokeWidth={2} />
+                </motion.button>
+              </div>
             </div>
           </div>
-          <button
-            type="submit"
-            disabled={isStreaming}
-            aria-busy={isStreaming}
-            style={{
-              width: 32,
-              height: 32,
-              flexShrink: 0,
-              borderRadius: "var(--ll-radius-sm)",
-              border: "none",
-              background: "var(--ll-accent)",
-              color: "var(--ll-text-inverse)",
-              display: "grid",
-              placeItems: "center",
-              cursor: isStreaming ? "default" : "pointer",
-              opacity: isStreaming ? 0.55 : 1,
-              transition: "background 150ms ease, opacity 150ms ease"
-            }}
-          >
-            <ArrowUp size={16} strokeWidth={1.5} />
-          </button>
         </form>
       </div>
     </div>

@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { FileSearch, LineChart } from "lucide-react";
+import { BarChart3, FileText, LineChart } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+
 import { useWorkspaceUi } from "@/components/layout/WorkspaceStateProvider";
 import { ChartPanel } from "@/components/charts/ChartPanel";
 import { BookmarkEvidenceButton } from "@/components/sources/BookmarkEvidenceButton";
 import { SourceCard } from "@/components/sources/SourceCard";
+import { cn } from "@/lib/utils";
 
 type DrawerTab = "sources" | "charts";
 
@@ -15,39 +18,41 @@ export function RightDrawer() {
   const [tab, setTab] = useState<DrawerTab>("sources");
 
   return (
-    <div
-      style={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column"
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          borderBottom: "1px solid var(--ll-border-hairline)",
-          background: "var(--ll-bg-surface)"
-        }}
-      >
-        <DrawerTabButton
-          active={tab === "sources"}
-          icon={FileSearch}
-          label="Sources"
-          onClick={() => setTab("sources")}
-        />
-        <DrawerTabButton
-          active={tab === "charts"}
-          icon={LineChart}
-          label="Charts"
-          onClick={() => setTab("charts")}
-        />
+    <div className="flex h-full flex-col">
+      <div className="flex-shrink-0 border-b border-[var(--ll-border-hairline)] bg-[var(--ll-bg-base)]/80">
+        <div className="flex">
+          <DrawerTabButton
+            active={tab === "sources"}
+            icon={FileText}
+            label="Sources"
+            onClick={() => setTab("sources")}
+          />
+          <DrawerTabButton
+            active={tab === "charts"}
+            icon={BarChart3}
+            label="Charts"
+            onClick={() => setTab("charts")}
+          />
+        </div>
       </div>
-      <div style={{ flex: 1, overflowY: "auto", padding: "16px 14px 20px" }}>
-        {tab === "sources" ? (
-          <SourcesPane sources={drawerSources} />
-        ) : (
-          <ChartsPane chart={drawerChart} />
-        )}
+
+      <div className="flex-1 overflow-y-auto px-3 py-4">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={tab}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18 }}
+            className="h-full"
+          >
+            {tab === "sources" ? (
+              <SourcesPane sources={drawerSources} />
+            ) : (
+              <ChartsPane chart={drawerChart} />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -68,29 +73,20 @@ function DrawerTabButton({
     <button
       type="button"
       onClick={onClick}
-      style={{
-        flex: 1,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 8,
-        padding: "12px 8px",
-        border: "none",
-        borderBottom: active ? "2px solid var(--ll-accent)" : "2px solid transparent",
-        marginBottom: -1,
-        background: "transparent",
-        color: active ? "var(--ll-text-primary)" : "var(--ll-text-tertiary)",
-        fontSize: "var(--ll-text-xs)",
-        fontWeight: active ? 600 : 500,
-        letterSpacing: "0.07em",
-        textTransform: "uppercase" as const,
-        cursor: "pointer",
-        fontFamily: "var(--ll-font-ui)",
-        transition: "color 100ms ease, border-color 100ms ease"
-      }}
+      className={cn(
+        "relative flex h-10 flex-1 cursor-pointer items-center justify-center gap-1.5 px-4 text-xs font-semibold uppercase tracking-[0.07em] transition-colors duration-150",
+        active ? "text-[var(--ll-text-primary)]" : "text-[var(--ll-text-tertiary)] hover:text-[var(--ll-text-secondary)]"
+      )}
     >
-      <Icon size={14} strokeWidth={1.5} />
+      <Icon size={12} strokeWidth={1.5} />
       {label}
+      {active ? (
+        <motion.div
+          layoutId="drawer-tab-indicator"
+          className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--ll-accent)]"
+          transition={{ duration: 0.2, ease: "easeOut" }}
+        />
+      ) : null}
     </button>
   );
 }
@@ -98,29 +94,36 @@ function DrawerTabButton({
 function SourcesPane({ sources }: { sources: ReturnType<typeof useWorkspaceUi>["drawerSources"] }) {
   if (!sources.length) {
     return (
-      <div style={{ padding: "8px 4px" }}>
-        <EmptyBlock
-          icon={FileSearch}
-          title="No sources in view"
-          body="Run an analysis query. Retrieved evidence will land here with SEC, macro, and news context."
-        />
+      <div className="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
+        <div className="relative flex h-14 w-14 items-center justify-center rounded-[var(--ll-radius-lg)] border border-[var(--ll-border-default)] bg-[var(--ll-bg-elevated)]">
+          <div className="absolute inset-0 rounded-[var(--ll-radius-lg)] bg-[radial-gradient(circle_at_center,rgba(45,212,191,0.06),transparent)]" />
+          <FileText size={22} className="relative text-[var(--ll-text-tertiary)]" strokeWidth={1.5} />
+        </div>
+        <div>
+          <p className="mb-1 text-sm font-semibold text-[var(--ll-text-secondary)]">No sources in view</p>
+          <p className="mx-auto max-w-[190px] text-xs leading-relaxed text-[var(--ll-text-tertiary)]">
+            Run an analysis query. Retrieved evidence will land here with SEC, macro, and news context.
+          </p>
+        </div>
       </div>
     );
   }
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div className="flex flex-col gap-3">
       {sources.map((source, index) => (
-        <div
+        <motion.div
           key={source.id}
-          style={{
-            animation: "ll-card-in 200ms ease-out forwards",
-            animationDelay: `${Math.min(index, 8) * 60}ms`,
-            opacity: 0
+          initial={{ opacity: 0, x: 14 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{
+            duration: 0.35,
+            delay: Math.min(index, 8) * 0.06,
+            ease: [0.33, 1, 0.68, 1]
           }}
         >
           <SourceCard source={source} />
           <BookmarkEvidenceButton sourceId={source.id} />
-        </div>
+        </motion.div>
       ))}
     </div>
   );
@@ -129,49 +132,14 @@ function SourcesPane({ sources }: { sources: ReturnType<typeof useWorkspaceUi>["
 function ChartsPane({ chart }: { chart: ReturnType<typeof useWorkspaceUi>["drawerChart"] }) {
   if (!chart) {
     return (
-      <EmptyBlock
-        icon={LineChart}
-        title="No chart context"
-        body="When the model returns chart-ready series, they will appear in this tab."
-      />
+      <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
+        <LineChart size={28} className="text-[var(--ll-text-tertiary)]" strokeWidth={1.5} />
+        <p className="text-sm font-semibold text-[var(--ll-text-secondary)]">No chart context</p>
+        <p className="max-w-[200px] text-xs leading-relaxed text-[var(--ll-text-tertiary)]">
+          When the model returns chart-ready series, they will appear in this tab.
+        </p>
+      </div>
     );
   }
   return <ChartPanel chart={chart} />;
-}
-
-function EmptyBlock({ icon: Icon, title, body }: { icon: LucideIcon; title: string; body: string }) {
-  return (
-    <div
-      style={{
-        border: "1px dashed var(--ll-border-default)",
-        borderRadius: "var(--ll-radius-md)",
-        padding: "20px 16px",
-        textAlign: "center" as const
-      }}
-    >
-      <Icon
-        size={24}
-        strokeWidth={1.5}
-        style={{
-          display: "block",
-          margin: "0 auto 12px",
-          color: "var(--ll-text-tertiary)"
-        }}
-      />
-      <div style={{ fontSize: "var(--ll-text-base)", fontWeight: 600, color: "var(--ll-text-secondary)" }}>{title}</div>
-      <div
-        style={{
-          marginTop: 8,
-          fontSize: "var(--ll-text-sm)",
-          lineHeight: "var(--ll-text-sm-lh)",
-          color: "var(--ll-text-tertiary)",
-          maxWidth: 260,
-          marginLeft: "auto",
-          marginRight: "auto"
-        }}
-      >
-        {body}
-      </div>
-    </div>
-  );
 }

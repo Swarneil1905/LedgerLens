@@ -1,45 +1,22 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bookmark, Building2, FolderOpen, PanelsTopLeft } from "lucide-react";
+import { motion } from "motion/react";
+import { Bookmark, Building2, FolderOpen, Home, TrendingUp } from "lucide-react";
 
-const navBase: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 10,
-  height: 36,
-  paddingLeft: 12,
-  paddingRight: 12,
-  borderRadius: "var(--ll-radius-sm)",
-  fontSize: "var(--ll-text-sm)",
-  lineHeight: "var(--ll-text-sm-lh)",
-  transition: "color 100ms ease, background 100ms ease, border-color 100ms ease",
-  textDecoration: "none"
-};
+import { cn } from "@/lib/utils";
 
-const items = [
-  { href: "/work", label: "Home", icon: PanelsTopLeft, match: (path: string) => path === "/work" },
-  { href: "/saved", label: "Saved", icon: FolderOpen, match: (path: string) => path.startsWith("/saved") },
-  {
-    href: "/bookmarks",
-    label: "Bookmarks",
-    icon: Bookmark,
-    match: (path: string) => path.startsWith("/bookmarks")
-  }
+const NAV_ITEMS: {
+  icon: typeof Home;
+  label: string;
+  href: string;
+  match: (path: string) => boolean;
+}[] = [
+  { icon: Home, label: "Home", href: "/work", match: (path) => path === "/work" },
+  { icon: FolderOpen, label: "Saved", href: "/saved", match: (path) => path.startsWith("/saved") },
+  { icon: Bookmark, label: "Bookmarks", href: "/bookmarks", match: (path) => path.startsWith("/bookmarks") }
 ];
-
-function navLinkStyle(active: boolean): CSSProperties {
-  return {
-    ...navBase,
-    borderLeft: active ? "2px solid var(--ll-accent)" : "2px solid transparent",
-    paddingLeft: active ? 10 : 12,
-    color: active ? "var(--ll-text-primary)" : "var(--ll-text-secondary)",
-    fontWeight: active ? 600 : 500,
-    background: active ? "var(--ll-bg-elevated)" : "transparent"
-  };
-}
 
 export function Sidebar({ workspaceHref }: { workspaceHref?: string }) {
   const pathname = usePathname();
@@ -47,64 +24,104 @@ export function Sidebar({ workspaceHref }: { workspaceHref?: string }) {
   const workspaceActive = pathname.startsWith("/workspace/");
 
   return (
-    <div
-      style={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        padding: "16px 10px 12px"
-      }}
-    >
-      <div style={{ padding: "0 6px 20px" }}>
-        <div className="ll-section-label" style={{ paddingLeft: 4 }}>
-          LedgerLens
-        </div>
-        <div
-          style={{
-            marginTop: 8,
-            fontSize: "var(--ll-text-lg)",
-            lineHeight: "var(--ll-text-lg-lh)",
-            fontWeight: 700,
-            letterSpacing: "-0.025em",
-            color: "var(--ll-text-primary)",
-            paddingLeft: 4
-          }}
-        >
-          Workspace
+    <div className="flex h-full flex-col py-4">
+      <div className="mb-6 px-4">
+        <div className="flex items-center gap-2">
+          <div
+            className={cn(
+              "flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-[var(--ll-radius-sm)]",
+              "border border-[var(--ll-accent-border)] bg-[var(--ll-accent-dim)]"
+            )}
+          >
+            <TrendingUp size={12} className="text-[var(--ll-accent)]" />
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--ll-text-tertiary)]">
+              LedgerLens
+            </p>
+            <p className="mt-0.5 text-sm font-bold leading-none tracking-[-0.02em] text-[var(--ll-text-primary)]">
+              Workspace
+            </p>
+          </div>
         </div>
       </div>
 
-      <nav style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
-        <div className="ll-section-label" style={{ padding: "12px 10px 4px" }}>
-          Navigate
-        </div>
-        {items.map(({ href, label, icon: Icon, match }) => {
-          const active = match(pathname);
+      <p className="mb-2 px-4 text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--ll-text-tertiary)]">
+        Navigate
+      </p>
+
+      <nav className="flex flex-col gap-0.5 px-2">
+        {NAV_ITEMS.map((item, i) => {
+          const isActive = item.match(pathname);
           return (
-            <Link key={href} href={href} style={navLinkStyle(active)}>
-              <Icon size={16} strokeWidth={1.5} />
-              <span>{label}</span>
-            </Link>
+            <motion.div
+              key={item.label}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: i * 0.05 }}
+            >
+              <Link
+                href={item.href}
+                className={cn(
+                  "group relative flex h-9 items-center gap-2.5 rounded-[var(--ll-radius-md)] text-sm font-medium transition-all duration-150",
+                  isActive
+                    ? "border-l-2 border-[var(--ll-accent)] bg-[var(--ll-bg-elevated)] pl-[10px] pr-3 text-[var(--ll-text-primary)]"
+                    : "px-3 text-[var(--ll-text-secondary)] hover:bg-[var(--ll-bg-elevated)] hover:text-[var(--ll-text-primary)]"
+                )}
+              >
+                <item.icon
+                  size={15}
+                  strokeWidth={1.5}
+                  className={cn(
+                    isActive
+                      ? "text-[var(--ll-accent)]"
+                      : "text-[var(--ll-text-tertiary)] group-hover:text-[var(--ll-text-secondary)]"
+                  )}
+                />
+                {item.label}
+                {isActive ? (
+                  <span className="ml-auto h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[var(--ll-accent)] shadow-[0_0_6px_var(--ll-accent)]" />
+                ) : null}
+              </Link>
+            </motion.div>
           );
         })}
-        <Link href={workspaceLink} style={navLinkStyle(workspaceActive)}>
-          <Building2 size={16} strokeWidth={1.5} />
-          <span>Company</span>
-        </Link>
+
+        <motion.div
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: NAV_ITEMS.length * 0.05 }}
+        >
+          <Link
+            href={workspaceLink}
+            className={cn(
+              "group relative flex h-9 items-center gap-2.5 rounded-[var(--ll-radius-md)] text-sm font-medium transition-all duration-150",
+              workspaceActive
+                ? "border-l-2 border-[var(--ll-accent)] bg-[var(--ll-bg-elevated)] pl-[10px] pr-3 text-[var(--ll-text-primary)]"
+                : "px-3 text-[var(--ll-text-secondary)] hover:bg-[var(--ll-bg-elevated)] hover:text-[var(--ll-text-primary)]"
+            )}
+          >
+            <Building2
+              size={15}
+              strokeWidth={1.5}
+              className={cn(
+                workspaceActive
+                  ? "text-[var(--ll-accent)]"
+                  : "text-[var(--ll-text-tertiary)] group-hover:text-[var(--ll-text-secondary)]"
+              )}
+            />
+            Company
+            {workspaceActive ? (
+              <span className="ml-auto h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[var(--ll-accent)] shadow-[0_0_6px_var(--ll-accent)]" />
+            ) : null}
+          </Link>
+        </motion.div>
       </nav>
 
-      <div
-        className="mono"
-        style={{
-          marginTop: "auto",
-          padding: "12px 10px 4px",
-          fontSize: "var(--ll-text-2xs)",
-          lineHeight: "var(--ll-text-2xs-lh)",
-          color: "var(--ll-text-tertiary)",
-          letterSpacing: "0.04em"
-        }}
-      >
-        v1 · local
+      <div className="flex-1" />
+
+      <div className="px-4 pb-2">
+        <p className="font-mono text-[10px] leading-relaxed text-[var(--ll-text-tertiary)]">v1 · local</p>
       </div>
     </div>
   );

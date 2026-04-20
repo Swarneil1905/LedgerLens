@@ -1,9 +1,11 @@
-import type { CSSProperties, ReactNode } from "react";
+"use client";
+
+import type { ReactNode } from "react";
+
+import { GridPattern } from "@/components/effects/GridPattern";
 import { RightDrawer } from "@/components/layout/RightDrawer";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
-
-const panelBg: CSSProperties = { background: "var(--ll-bg-surface)", minWidth: 0 };
 
 export function WorkspaceShell({
   children,
@@ -13,40 +15,38 @@ export function WorkspaceShell({
   workspaceHref?: string;
 }) {
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "var(--ll-sidebar-width) 1fr var(--ll-drawer-width)",
-        gridTemplateRows: "var(--ll-topbar-height) 1fr",
-        height: "100dvh",
-        maxHeight: "100dvh",
-        overflow: "hidden",
-        gap: "var(--ll-panel-gap)",
-        backgroundColor: "var(--ll-border-hairline)"
-      }}
-    >
-      <header style={{ gridColumn: "1 / -1", gridRow: "1 / 2", ...panelBg, margin: 0 }}>
-        <TopBar />
-      </header>
-      <aside style={{ gridColumn: "1 / 2", gridRow: "2 / 3", ...panelBg, overflow: "hidden" }}>
-        <Sidebar workspaceHref={workspaceHref ?? "/workspace/apple"} />
-      </aside>
-      <main
+    <div className="relative flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden bg-[var(--ll-bg-base)]">
+      <GridPattern
+        dotColor="rgba(255,255,255,0.03)"
+        gap={32}
+        fade="none"
+        className="pointer-events-none fixed inset-0 z-0"
+      />
+
+      <div
+        className="pointer-events-none fixed left-0 top-0 z-0 h-[400px] w-[600px]"
         style={{
-          gridColumn: "2 / 3",
-          gridRow: "2 / 3",
-          ...panelBg,
-          overflowY: "auto",
-          overflowX: "hidden",
-          padding: "20px 24px 24px",
-          scrollBehavior: "smooth"
+          background:
+            "radial-gradient(ellipse at top left, rgba(45,212,191,0.04) 0%, transparent 70%)"
         }}
-      >
-        {children}
-      </main>
-      <aside style={{ gridColumn: "3 / 4", gridRow: "2 / 3", ...panelBg, overflow: "hidden" }}>
-        <RightDrawer />
-      </aside>
+        aria-hidden
+      />
+
+      <div className="relative z-20 h-[var(--ll-topbar-height)] flex-shrink-0 border-b border-[var(--ll-border-hairline)] bg-[var(--ll-bg-base)]/95 backdrop-blur-xl">
+        <TopBar />
+      </div>
+
+      <div className="relative z-10 flex flex-1 overflow-hidden">
+        <aside className="flex h-full w-[var(--ll-sidebar-width)] flex-shrink-0 flex-col overflow-y-auto border-r border-[var(--ll-border-hairline)] bg-[var(--ll-bg-base)]/95">
+          <Sidebar workspaceHref={workspaceHref ?? "/workspace/apple"} />
+        </aside>
+
+        <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-[var(--ll-bg-base)]">{children}</main>
+
+        <aside className="flex h-full w-[var(--ll-drawer-width)] flex-shrink-0 flex-col overflow-y-auto border-l border-[var(--ll-border-hairline)] bg-[var(--ll-bg-base)]/95">
+          <RightDrawer />
+        </aside>
+      </div>
     </div>
   );
 }

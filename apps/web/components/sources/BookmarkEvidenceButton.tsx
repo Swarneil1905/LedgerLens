@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { Bookmark } from "lucide-react";
+
 import { getApiBaseUrl } from "@/lib/api-client";
+import { cn } from "@/lib/utils";
 
 export function BookmarkEvidenceButton({ sourceId }: { sourceId: string }) {
   const [saved, setSaved] = useState(false);
@@ -26,30 +28,20 @@ export function BookmarkEvidenceButton({ sourceId }: { sourceId: string }) {
   }
 
   return (
-    <div style={{ marginTop: 10 }}>
+    <div className="mt-2.5">
       <button
         type="button"
         onClick={() => void save()}
         disabled={saved}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 6,
-          padding: "6px 10px",
-          borderRadius: "var(--ll-radius-sm)",
-          border: "1px solid var(--ll-border-default)",
-          background: "var(--ll-bg-overlay)",
-          color: "var(--ll-text-secondary)",
-          cursor: saved ? "default" : "pointer",
-          fontSize: "var(--ll-text-xs)"
-        }}
+        className={cn(
+          "inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--ll-radius-sm)] border border-[var(--ll-border-default)] bg-[var(--ll-bg-overlay)] px-2.5 py-1.5 text-xs font-semibold text-[var(--ll-text-secondary)] transition-colors duration-150",
+          "hover:border-[var(--ll-accent-border)] hover:text-[var(--ll-accent)] disabled:cursor-default disabled:opacity-60"
+        )}
       >
-        <Bookmark size={14} strokeWidth={1.5} />
+        <Bookmark size={12} strokeWidth={2} />
         {saved ? "Saved" : "Save evidence"}
       </button>
-      {error ? (
-        <span style={{ marginLeft: 8, color: "var(--ll-negative)", fontSize: "var(--ll-text-xs)" }}>{error}</span>
-      ) : null}
+      {error ? <span className="ml-2 text-xs text-[var(--ll-negative)]">{error}</span> : null}
     </div>
   );
 }

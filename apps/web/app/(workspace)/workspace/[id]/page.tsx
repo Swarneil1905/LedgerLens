@@ -28,6 +28,10 @@ export default async function CompanyWorkspacePage({ params }: PageProps) {
       <WorkspaceHeaderHydrator
         title={`${workspace.company.name} / Workspace`}
         subtitle={workspace.company.ticker}
+        breadcrumb={[
+          { label: "Workspace", href: "/work" },
+          { label: workspace.company.ticker }
+        ]}
       />
       <div className="page-grid">
         <section className="panel" style={{ padding: 24 }}>
