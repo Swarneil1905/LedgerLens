@@ -5,7 +5,7 @@ import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { DataSourcesSection } from "@/components/landing/DataSourcesSection";
 import { DemoSection } from "@/components/landing/DemoSection";
-import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
+import { PrinciplesSection } from "@/components/landing/PrinciplesSection";
 import { StatsSection } from "@/components/landing/StatsSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { CTASection } from "@/components/landing/CTASection";
@@ -22,7 +22,7 @@ export default function LandingPage() {
         <HowItWorksSection />
         <DataSourcesSection />
         <DemoSection />
-        <TestimonialsSection />
+        <PrinciplesSection />
         <StatsSection />
         <PricingSection />
         <CTASection />
