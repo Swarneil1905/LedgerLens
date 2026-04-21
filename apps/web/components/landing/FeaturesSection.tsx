@@ -10,7 +10,7 @@ const FEATURES = [
     icon: FileSearch,
     title: "SEC Filing Analysis",
     description:
-      "Instantly surface what changed between 10-K and 10-Q filings. Risk factors, revenue mix, management commentary — all searchable.",
+      "Instantly surface what changed between 10-K and 10-Q filings. Risk factors, revenue mix, management commentary, all searchable.",
     color: "var(--ll-source-sec)",
     spotlight: "color-mix(in oklch, var(--ll-source-sec) 14%, transparent)"
   },
@@ -18,7 +18,7 @@ const FEATURES = [
     icon: BarChart3,
     title: "FRED Macro Context",
     description:
-      "Every answer is automatically contextualized with relevant macro indicators — interest rates, CPI, employment, industrial output.",
+      "Every answer is automatically contextualized with relevant macro indicators: interest rates, CPI, employment, industrial output.",
     color: "var(--ll-source-fred)",
     spotlight: "color-mix(in oklch, var(--ll-source-fred) 14%, transparent)"
   },
@@ -34,7 +34,7 @@ const FEATURES = [
     icon: Brain,
     title: "Grounded Answers Only",
     description:
-      "Every claim is cited. The model cannot fabricate — it can only synthesize from retrieved evidence. Citation superscripts link to sources.",
+      "Every claim is cited. The model cannot fabricate; it can only synthesize from retrieved evidence. Citation superscripts link to sources.",
     color: "var(--ll-accent)",
     spotlight: "color-mix(in oklch, var(--ll-accent) 14%, transparent)"
   },

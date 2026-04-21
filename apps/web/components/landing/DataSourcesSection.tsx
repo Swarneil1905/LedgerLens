@@ -6,13 +6,13 @@ import { BarChart3, FileText, Newspaper } from "lucide-react";
 const SOURCES = [
   {
     title: "SEC EDGAR",
-    body: "10-K, 10-Q, 8-K, and exhibits — chunked, embedded, and retrievable with inline citations.",
+    body: "10-K, 10-Q, 8-K, and exhibits, chunked, embedded, and retrievable with inline citations.",
     icon: FileText,
     accent: "var(--ll-source-sec)"
   },
   {
     title: "FRED",
-    body: "Macro series aligned to your question — rates, inflation, labor, and activity in context.",
+    body: "Macro series aligned to your question: rates, inflation, labor, and activity in context.",
     icon: BarChart3,
     accent: "var(--ll-source-fred)"
   },

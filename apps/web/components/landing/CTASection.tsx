@@ -32,7 +32,7 @@ export function CTASection() {
           transition={{ duration: 0.5, delay: 0.15 }}
           className="mx-auto mb-10 max-w-lg text-lg leading-relaxed text-[var(--ll-text-secondary)]"
         >
-          Every answer is grounded in evidence. Every claim is cited. Start your analysis in seconds — free, no card
+          Every answer is grounded in evidence. Every claim is cited. Start your analysis in seconds. Free, no card
           required.
         </motion.p>
 

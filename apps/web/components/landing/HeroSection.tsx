@@ -31,7 +31,7 @@ export function HeroSection() {
               "text-xs font-medium tracking-[0.04em] text-[var(--ll-accent)]"
             )}
           >
-            Now in beta — SEC · FRED · News
+            Now in beta. SEC · FRED · News
           </span>
         </motion.div>
 
@@ -52,7 +52,7 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.35 }}
           className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-[var(--ll-text-secondary)] md:text-xl"
         >
-          Grounded answers from SEC filings, FRED macro data, and live news — all in one workspace. Every claim is
+          Grounded answers from SEC filings, FRED macro data, and live news, all in one workspace. Every claim is
           cited. Nothing is fabricated.
         </motion.p>
 
@@ -99,7 +99,7 @@ export function HeroSection() {
             <div className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
             <div className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
             <div className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-            <span className="ml-3 font-mono text-xs text-[var(--ll-text-tertiary)]">ledgerlens — AAPL workspace</span>
+            <span className="ml-3 font-mono text-xs text-[var(--ll-text-tertiary)]">ledgerlens / AAPL workspace</span>
           </div>
 
           <div className="space-y-4 p-6 text-left">

@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 const PRINCIPLES = [
   {
     title: "Citations you can audit",
-    body: "Answers are built from retrieved filings, macro series, and news—not from undocumented model memory—so you can verify claims against the underlying sources."
+    body: "Answers are built from retrieved filings, macro series, and news (not from undocumented model memory), so you can verify claims against the underlying sources."
   },
   {
     title: "One workspace, not twelve tabs",

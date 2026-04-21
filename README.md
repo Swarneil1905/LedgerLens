@@ -4,10 +4,10 @@ LedgerLens is an AI analyst workspace for filings, macro data, news, and grounde
 
 Monorepo layout:
 
-- `apps/web` — Next.js 15 (App Router) workspace UI
-- `apps/api` — FastAPI backend (SSE chat, workspaces, bookmarks, sources)
-- `packages/types` — shared TypeScript contracts
-- `packages/observability` — shared event typing
+- `apps/web`: Next.js 15 (App Router) workspace UI
+- `apps/api`: FastAPI backend (SSE chat, workspaces, bookmarks, sources)
+- `packages/types`: shared TypeScript contracts
+- `packages/observability`: shared event typing
 
 ## Prerequisites
 
@@ -18,8 +18,8 @@ Monorepo layout:
 
 Copy `.env.example` to `apps/web/.env.local` for the frontend and export variables for the API as needed.
 
-- `NEXT_PUBLIC_API_BASE_URL` — FastAPI origin (default `http://localhost:8000`). You may also set `NEXT_PUBLIC_API_URL`; the web app accepts either.
-- Optional: `DATABASE_URL` — when set and reachable, `GET /health` reports `db_connected: true`.
+- `NEXT_PUBLIC_API_BASE_URL`: FastAPI origin (default `http://localhost:8000`). You may also set `NEXT_PUBLIC_API_URL`; the web app accepts either.
+- Optional: `DATABASE_URL`: when set and reachable, `GET /health` reports `db_connected: true`.
 
 ## Run locally
 

@@ -1,31 +1,31 @@
-# LedgerLens — Workspace Screens Upgrade
-## Screen 2 (Workspace Home) + Screen 3 (Chat Analysis) — Full Code
+# LedgerLens  -  Workspace Screens Upgrade
+## Screen 2 (Workspace Home) + Screen 3 (Chat Analysis)  -  Full Code
 ### Place at: `apps/web/WORKSPACE_SCREENS.md`
 
 ---
 
 ## WHAT'S WRONG WITH THE CURRENT SCREENS (diagnosis from screenshots)
 
-**Screen 2 — Workspace Home:**
-- Flat, static — no animations, no depth, no visual hierarchy beyond text size
-- Company cards look like plain divs — no hover effects, no glow, no spotlight
-- The sidebar has no visual weight — blends into the background
-- Search input is unstyled — looks like a browser default
+**Screen 2  -  Workspace Home:**
+- Flat, static  -  no animations, no depth, no visual hierarchy beyond text size
+- Company cards look like plain divs  -  no hover effects, no glow, no spotlight
+- The sidebar has no visual weight  -  blends into the background
+- Search input is unstyled  -  looks like a browser default
 - Right drawer is empty with placeholder text but no visual treatment
-- No background texture — dead flat dark compared to the landing page
+- No background texture  -  dead flat dark compared to the landing page
 - Company letter avatars (A, M) are the right idea but look like raw colored squares
 
-**Screen 3 — Chat Analysis:**
+**Screen 3  -  Chat Analysis:**
 - Source cards in right drawer have color-coded left borders (good!) but are otherwise flat
-- The answer text area has no visual framing — just text floating on dark background
+- The answer text area has no visual framing  -  just text floating on dark background
 - Follow-up question chips are unstyled border boxes
 - Query input at bottom is plain textarea
 - No animations on source card entrance, no streaming visual treatment
 - The topbar breadcrumb is monospace but understyled
-- "Save evidence" links are too quiet — need to read as actions
+- "Save evidence" links are too quiet  -  need to read as actions
 
 **Principle for both screens:**
-Same visual DNA as the landing page — GridPattern background texture, SpotlightCard hover effects,
+Same visual DNA as the landing page  -  GridPattern background texture, SpotlightCard hover effects,
 GlowButton CTAs, motion/react entrance animations. The workspace should feel like a premium
 instrument, not an admin panel.
 
@@ -52,7 +52,7 @@ interface WorkspaceShellProps {
 export function WorkspaceShell({ topbar, sidebar, main, drawer }: WorkspaceShellProps) {
   return (
     <div className="relative flex flex-col h-screen overflow-hidden bg-[var(--ll-bg-base)]">
-      {/* Subtle grid pattern — same texture as landing, much more subtle here */}
+      {/* Subtle grid pattern  -  same texture as landing, much more subtle here */}
       <GridPattern
         dotColor="rgba(255,255,255,0.03)"
         gap={32}
@@ -60,7 +60,7 @@ export function WorkspaceShell({ topbar, sidebar, main, drawer }: WorkspaceShell
         className="fixed inset-0 pointer-events-none z-0"
       />
 
-      {/* Very faint teal radial — top-left, anchors the workspace */}
+      {/* Very faint teal radial  -  top-left, anchors the workspace */}
       <div
         className="fixed top-0 left-0 w-[600px] h-[400px] pointer-events-none z-0"
         style={{
@@ -69,7 +69,7 @@ export function WorkspaceShell({ topbar, sidebar, main, drawer }: WorkspaceShell
         aria-hidden="true"
       />
 
-      {/* Topbar — spans full width */}
+      {/* Topbar  -  spans full width */}
       <div className="relative z-20 flex-shrink-0 h-[var(--ll-topbar-height)] border-b border-[var(--ll-border-hairline)] bg-[var(--ll-bg-base)]/95 backdrop-blur-xl">
         {topbar}
       </div>
@@ -379,7 +379,7 @@ function EmptyCharts() {
 
 ---
 
-## SCREEN 2 — WORKSPACE HOME (Full Upgrade)
+## SCREEN 2  -  WORKSPACE HOME (Full Upgrade)
 
 ```tsx
 // apps/web/app/(workspace)/work/page.tsx
@@ -444,7 +444,7 @@ import { Search, ArrowRight } from 'lucide-react'
 import { SpotlightCard } from '@/components/effects/SpotlightCard'
 import { BorderBeam }    from '@/components/effects/BorderBeam'
 
-// ─── Mock data — replace with real API calls ───────────────────────────────
+// ─── Mock data  -  replace with real API calls ───────────────────────────────
 const RECENT_COMPANIES = [
   {
     ticker: 'AAPL',
@@ -736,7 +736,7 @@ export function WorkspaceHomeMain() {
 
 ---
 
-## SCREEN 3 — CHAT ANALYSIS (Full Upgrade)
+## SCREEN 3  -  CHAT ANALYSIS (Full Upgrade)
 
 ```tsx
 // apps/web/app/(workspace)/chat/[id]/page.tsx
@@ -747,7 +747,7 @@ import { RightDrawer }        from '@/components/layout/RightDrawer'
 import { ChatMain }           from '@/components/chat/ChatMain'
 import { ChatSourcesDrawer }  from '@/components/chat/ChatSourcesDrawer'
 
-// Mock data — replace with real params + API
+// Mock data  -  replace with real params + API
 const MOCK_TICKER = 'AAPL'
 
 export default function ChatPage({ params }: { params: { id: string } }) {
@@ -851,7 +851,7 @@ export function ChatMain({ ticker, sessionId }: ChatMainProps) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Message thread — scrollable */}
+      {/* Message thread  -  scrollable */}
       <div className="flex-1 overflow-y-auto px-8 py-6 space-y-2">
         <AnimatePresence initial={false}>
           {messages.map((msg, i) => (
@@ -861,7 +861,7 @@ export function ChatMain({ ticker, sessionId }: ChatMainProps) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Query input — sticky bottom */}
+      {/* Query input  -  sticky bottom */}
       <div className="flex-shrink-0 px-8 py-5 border-t border-[var(--ll-border-hairline)] bg-[var(--ll-bg-base)]/95 backdrop-blur-xl">
         {/* Source filter strip */}
         <div className="flex items-center gap-2 mb-3">
@@ -1113,7 +1113,7 @@ function ChatMessage({ message, index }: { message: Message; index: number }) {
 }
 ```
 
-### Chat Sources Drawer (Right Panel — Screen 3)
+### Chat Sources Drawer (Right Panel  -  Screen 3)
 
 ```tsx
 // apps/web/components/chat/ChatSourcesDrawer.tsx
@@ -1224,7 +1224,7 @@ function SourceCard({ source, index }: { source: Source; index: number }) {
               {source.label}
             </span>
           </div>
-          {/* Date — mono */}
+          {/* Date  -  mono */}
           <span className="text-[10px] font-mono text-[var(--ll-text-tertiary)]">
             {source.date}
           </span>
@@ -1284,9 +1284,9 @@ function SourceCard({ source, index }: { source: Source; index: number }) {
 
 ---
 
-## ANIMATION SUMMARY — WHAT EACH SCREEN NOW HAS
+## ANIMATION SUMMARY  -  WHAT EACH SCREEN NOW HAS
 
-### Screen 2 — Workspace Home
+### Screen 2  -  Workspace Home
 | Element | Animation |
 |---|---|
 | Page header + H1 | `y: 16 → 0`, `opacity: 0 → 1`, 400ms, ease spring |
@@ -1299,7 +1299,7 @@ function SourceCard({ source, index }: { source: Source; index: number }) {
 | New workspace button | Dashed border → accent border + teal fill on hover |
 | Active nav item | Glowing teal dot indicator |
 
-### Screen 3 — Chat Analysis
+### Screen 3  -  Chat Analysis
 | Element | Animation |
 |---|---|
 | User query bubble | `y: 10 → 0`, `opacity: 0 → 1`, 300ms |
@@ -1324,23 +1324,23 @@ Build [WorkspaceHomeMain / ChatMain / ChatSourcesDrawer / SourceCard].
 
 This is an upgrade to screens that already render but look flat.
 The goal is visual consistency with the landing page:
-- Same GridPattern background texture (very subtle in workspace — dotColor 0.03 opacity)
+- Same GridPattern background texture (very subtle in workspace  -  dotColor 0.03 opacity)
 - Same SpotlightCard hover effects on all cards
 - Same BorderBeam on focused inputs
 - Same motion/react entrance animations (y offset, stagger, ease spring)
-- Same color token system — var(--ll-*) everywhere
+- Same color token system  -  var(--ll-*) everywhere
 
-Do NOT add full-page background effects in the workspace — only use:
+Do NOT add full-page background effects in the workspace  -  only use:
 1. GridPattern (very faint, fixed position)
 2. Single teal radial gradient (top-left, fixed, very low opacity)
 3. BorderBeam on focused interactive elements only
 
-Keep animations purposeful — source cards slide in from right,
+Keep animations purposeful  -  source cards slide in from right,
 page elements fade up, chips stagger in after answer appears.
 ```
 
 ---
 
-*LedgerLens Workspace Screens Spec — v1.0 — April 2026*
+*LedgerLens Workspace Screens Spec  -  v1.0  -  April 2026*
 *Companion: FRONTEND.md (landing), CURSOR.md (engineering), .cursor/rules/ui-design.mdc (design tokens)*
 *Place at: apps/web/WORKSPACE_SCREENS.md*

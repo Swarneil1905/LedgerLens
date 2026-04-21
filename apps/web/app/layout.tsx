@@ -19,7 +19,7 @@ const base = siteUrl();
 export const metadata: Metadata = {
   metadataBase: new URL(base),
   title: {
-    default: "LedgerLens — AI Analyst Workspace for Financial Intelligence",
+    default: "LedgerLens: AI Analyst Workspace for Financial Intelligence",
     template: "%s | LedgerLens"
   },
   description:
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: base,
-    title: "LedgerLens — AI Analyst Workspace",
+    title: "LedgerLens: AI Analyst Workspace",
     description:
       "Ask anything about any company. Get grounded answers from SEC filings, macro data, and news.",
     siteName: "LedgerLens",
@@ -47,13 +47,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "LedgerLens — AI Financial Analysis"
+        alt: "LedgerLens: AI Financial Analysis"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "LedgerLens — AI Analyst Workspace",
+    title: "LedgerLens: AI Analyst Workspace",
     description: "Ask anything about any company. Get grounded answers.",
     images: ["/og-image.png"],
     creator: "@ledgerlens"

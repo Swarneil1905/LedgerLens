@@ -1,6 +1,6 @@
-# LedgerLens — Complete Frontend Build Spec
+# LedgerLens  -  Complete Frontend Build Spec
 ## Framer-Quality UI: Animations, Effects, Landing Page & App Shell
-### Place this file at: `apps/web/FRONTEND.md` — read it before every UI session in Cursor
+### Place this file at: `apps/web/FRONTEND.md`  -  read it before every UI session in Cursor
 
 ---
 
@@ -35,7 +35,7 @@ pnpm add -D @types/three
 
 ---
 
-## PART 1 — PROJECT SETUP
+## PART 1  -  PROJECT SETUP
 
 ### 1.1 File Structure for Frontend
 
@@ -44,12 +44,12 @@ apps/web/
 ├── app/
 │   ├── (landing)/              # Landing page route group (public)
 │   │   ├── layout.tsx          # Landing layout (no sidebar/topbar)
-│   │   ├── page.tsx            # Landing page — assembles all sections
+│   │   ├── page.tsx            # Landing page  -  assembles all sections
 │   │   └── og-image/           # Dynamic OG image route
 │   │       └── route.tsx
 │   ├── (workspace)/            # App workspace (existing spec)
 │   │   └── ...
-│   ├── layout.tsx              # Root layout — fonts, analytics, SEO defaults
+│   ├── layout.tsx              # Root layout  -  fonts, analytics, SEO defaults
 │   ├── globals.css             # Design tokens + base styles
 │   ├── sitemap.ts              # Next.js 15 sitemap
 │   └── robots.ts               # robots.txt
@@ -97,7 +97,7 @@ import './globals.css'
 export const metadata: Metadata = {
   metadataBase: new URL('https://ledgerlens.app'),
   title: {
-    default: 'LedgerLens — AI Analyst Workspace for Financial Intelligence',
+    default: 'LedgerLens  -  AI Analyst Workspace for Financial Intelligence',
     template: '%s | LedgerLens',
   },
   description:
@@ -116,7 +116,7 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://ledgerlens.app',
-    title: 'LedgerLens — AI Analyst Workspace',
+    title: 'LedgerLens  -  AI Analyst Workspace',
     description: 'Ask anything about any company. Get grounded answers from SEC filings, macro data, and news.',
     siteName: 'LedgerLens',
     images: [
@@ -124,13 +124,13 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'LedgerLens — AI Financial Analysis',
+        alt: 'LedgerLens  -  AI Financial Analysis',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'LedgerLens — AI Analyst Workspace',
+    title: 'LedgerLens  -  AI Analyst Workspace',
     description: 'Ask anything about any company. Get grounded answers.',
     images: ['/og-image.png'],
     creator: '@ledgerlens',
@@ -318,11 +318,11 @@ html { scroll-behavior: smooth; }
 
 ---
 
-## PART 2 — VISUAL EFFECTS COMPONENTS
+## PART 2  -  VISUAL EFFECTS COMPONENTS
 
 ### 2.1 Fluid Mesh Gradient Background (The Framer Smoke Effect)
 
-This is the exact effect from that Portfolite screenshot — the flowing smoke/fluid background. No image files needed.
+This is the exact effect from that Portfolite screenshot  -  the flowing smoke/fluid background. No image files needed.
 
 ```tsx
 // apps/web/components/effects/MeshGradient.tsx
@@ -330,7 +330,7 @@ This is the exact effect from that Portfolite screenshot — the flowing smoke/f
 
 import { useEffect, useRef } from 'react'
 
-// Pure CSS/Canvas mesh gradient — no WebGL dependency needed for this version
+// Pure CSS/Canvas mesh gradient  -  no WebGL dependency needed for this version
 // Colors tuned for LedgerLens: deep black + subtle teal wisps
 export function MeshGradient({ className = '' }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -351,7 +351,7 @@ export function MeshGradient({ className = '' }: { className?: string }) {
     resize()
     window.addEventListener('resize', resize)
 
-    // Gradient blobs — positions animate with sin/cos for organic movement
+    // Gradient blobs  -  positions animate with sin/cos for organic movement
     const blobs = [
       { x: 0.2, y: 0.3, r: 0.45, color: 'rgba(45,212,191,0.07)' },   // teal
       { x: 0.8, y: 0.6, r: 0.50, color: 'rgba(129,140,248,0.06)' },  // violet
@@ -802,7 +802,7 @@ export function NumberTicker({
 
 ---
 
-## PART 3 — LANDING PAGE SECTIONS
+## PART 3  -  LANDING PAGE SECTIONS
 
 ### 3.1 Landing Layout
 
@@ -1020,7 +1020,7 @@ import { ArrowRight, FileText, TrendingUp, Newspaper } from 'lucide-react'
 export function HeroSection() {
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16">
-      {/* Backgrounds — layered */}
+      {/* Backgrounds  -  layered */}
       <MeshGradient className="opacity-100" />
       <GridPattern dotColor="rgba(255,255,255,0.06)" gap={32} fade="edges" />
 
@@ -1045,7 +1045,7 @@ export function HeroSection() {
             text-[var(--ll-accent)] text-xs font-medium
             tracking-[0.04em]
           ">
-            Now in beta — SEC · FRED · News
+            Now in beta  -  SEC · FRED · News
           </span>
         </motion.div>
 
@@ -1077,7 +1077,7 @@ export function HeroSection() {
             leading-relaxed
           "
         >
-          Grounded answers from SEC filings, FRED macro data, and live news —
+          Grounded answers from SEC filings, FRED macro data, and live news  - 
           all in one workspace. Every claim is cited. Nothing is fabricated.
         </motion.p>
 
@@ -1133,7 +1133,7 @@ export function HeroSection() {
             <div className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />
             <div className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />
             <span className="ml-3 text-xs text-[var(--ll-text-tertiary)] font-mono">
-              ledgerlens — AAPL workspace
+              ledgerlens  -  AAPL workspace
             </span>
           </div>
 
@@ -1264,13 +1264,13 @@ const FEATURES = [
   {
     icon: FileSearch,
     title: 'SEC Filing Analysis',
-    description: 'Instantly surface what changed between 10-K and 10-Q filings. Risk factors, revenue mix, management commentary — all searchable.',
+    description: 'Instantly surface what changed between 10-K and 10-Q filings. Risk factors, revenue mix, management commentary  -  all searchable.',
     color: 'var(--ll-source-sec)',
   },
   {
     icon: BarChart3,
     title: 'FRED Macro Context',
-    description: 'Every answer is automatically contextualized with relevant macro indicators — interest rates, CPI, employment, industrial output.',
+    description: 'Every answer is automatically contextualized with relevant macro indicators  -  interest rates, CPI, employment, industrial output.',
     color: 'var(--ll-source-fred)',
   },
   {
@@ -1282,7 +1282,7 @@ const FEATURES = [
   {
     icon: Brain,
     title: 'Grounded Answers Only',
-    description: 'Every claim is cited. The model cannot fabricate — it can only synthesize from retrieved evidence. Citation superscripts link to sources.',
+    description: 'Every claim is cited. The model cannot fabricate  -  it can only synthesize from retrieved evidence. Citation superscripts link to sources.',
     color: 'var(--ll-accent)',
   },
   {
@@ -1733,7 +1733,7 @@ export function CTASection() {
           className="text-lg text-[var(--ll-text-secondary)] mb-10 max-w-lg mx-auto leading-relaxed"
         >
           Every answer is grounded in evidence. Every claim is cited.
-          Start your analysis in seconds — free, no card required.
+          Start your analysis in seconds  -  free, no card required.
         </motion.p>
 
         <motion.div
@@ -1825,14 +1825,14 @@ export function Footer() {
 
 ---
 
-## PART 4 — IMAGE GENERATION MCP SETUP
+## PART 4  -  IMAGE GENERATION MCP SETUP
 
 For any custom images/graphics needed (hero illustrations, OG images, blog assets):
 
-### Option A — `mcp-image` (Recommended — Free Gemini tier)
+### Option A  -  `mcp-image` (Recommended  -  Free Gemini tier)
 
 ```json
-// .cursor/mcp.json — add this server
+// .cursor/mcp.json  -  add this server
 {
   "mcpServers": {
     "mcp-image": {
@@ -1859,7 +1859,7 @@ Generate an OG image for LedgerLens:
 Save to public/og-image.png
 ```
 
-### Option B — Replicate (Pay-per-image, no GPU needed)
+### Option B  -  Replicate (Pay-per-image, no GPU needed)
 
 ```json
 {
@@ -1877,7 +1877,7 @@ Save to public/og-image.png
 
 ---
 
-## PART 5 — CURSOR PROMPTING TEMPLATES FOR THIS SPEC
+## PART 5  -  CURSOR PROMPTING TEMPLATES FOR THIS SPEC
 
 ### Building a landing section from scratch:
 ```
@@ -1892,7 +1892,7 @@ Rules:
 - Use SpotlightCard for interactive cards
 - Use GlowButton for all CTAs
 - Use GridPattern or MeshGradient for background texture
-- No images — use Lucide icons and CSS effects only
+- No images  -  use Lucide icons and CSS effects only
 - Mobile-first, responsive at sm/md/lg breakpoints
 - No hardcoded colors, no inline hex values
 ```
@@ -1928,7 +1928,7 @@ Design:
 
 ---
 
-## PART 6 — DEPLOYMENT CHECKLIST
+## PART 6  -  DEPLOYMENT CHECKLIST
 
 Before going live on Vercel:
 
@@ -1944,8 +1944,8 @@ Before going live on Vercel:
 □ All useEffect cleanups verified (no memory leaks)
 □ Lighthouse score: Performance >90, Accessibility >95, SEO 100
 □ Test on mobile (375px), tablet (768px), desktop (1280px)
-□ Test with keyboard navigation — all interactive elements reachable
-□ Test with prefers-reduced-motion — animations should respect it
+□ Test with keyboard navigation  -  all interactive elements reachable
+□ Test with prefers-reduced-motion  -  animations should respect it
 ```
 
 ### Reduced Motion Support (add to every animated component):
@@ -1963,6 +1963,6 @@ transition={{ duration: shouldReduceMotion ? 0 : 0.5 }}
 
 ---
 
-*LedgerLens Frontend Complete Spec — v1.0 — April 2026*
+*LedgerLens Frontend Complete Spec  -  v1.0  -  April 2026*
 *Companion files: CURSOR.md (engineering), .cursor/rules/ui-design.mdc (design system)*
 *Place this file at: apps/web/FRONTEND.md*
