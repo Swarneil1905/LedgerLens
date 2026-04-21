@@ -83,7 +83,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     >
       <body className="bg-[var(--ll-bg-base)] text-[var(--ll-text-primary)] antialiased">
         {children}
-        <Analytics />
+        {process.env.VERCEL === "1" ? <Analytics /> : null}
       </body>
     </html>
   );
