@@ -74,7 +74,7 @@ function DrawerTabButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "relative flex h-10 flex-1 cursor-pointer items-center justify-center gap-1.5 px-4 text-xs font-semibold uppercase tracking-[0.07em] transition-colors duration-150",
+        "relative flex h-10 flex-1 cursor-pointer items-center justify-center gap-1.5 px-4 text-sm font-medium transition-colors duration-150",
         active ? "text-[var(--ll-text-primary)]" : "text-[var(--ll-text-tertiary)] hover:text-[var(--ll-text-secondary)]"
       )}
     >

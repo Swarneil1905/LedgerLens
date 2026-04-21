@@ -13,8 +13,8 @@ import {
 
 const axisTick = {
   fill: "var(--ll-text-tertiary)",
-  fontSize: 10,
-  fontFamily: "var(--ll-font-mono)"
+  fontSize: 11,
+  fontFamily: "var(--ll-font-ui)"
 };
 
 export function ChartPanel({ chart }: { chart: CompanyChart }) {
@@ -73,7 +73,7 @@ export function ChartPanel({ chart }: { chart: CompanyChart }) {
                 borderRadius: "var(--ll-radius-sm)",
                 color: "var(--ll-text-primary)",
                 boxShadow: "var(--ll-shadow-2)",
-                fontFamily: "var(--ll-font-mono)",
+                fontFamily: "var(--ll-font-ui)",
                 fontSize: "var(--ll-text-xs)"
               }}
             />

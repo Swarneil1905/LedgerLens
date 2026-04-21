@@ -20,15 +20,12 @@ export function SourceCard({ source }: { source: SourceCardType }) {
       style={{ borderLeft: `3px solid ${accent}` }}
     >
       <div className="px-3.5 py-3">
-        <div
-          className="flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-[10px] leading-tight text-[var(--ll-text-tertiary)]"
-        >
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs leading-tight text-[var(--ll-text-tertiary)]">
           <span
-            className="inline-block rounded-[var(--ll-radius-xs)] px-1.5 py-0.5 font-semibold uppercase tracking-[0.06em]"
+            className="inline-block rounded-[var(--ll-radius-xs)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em]"
             style={{
               background: badgeBg(source.sourceType),
-              color: accent,
-              fontFamily: "var(--ll-font-ui)"
+              color: accent
             }}
           >
             {badge}

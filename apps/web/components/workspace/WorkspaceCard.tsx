@@ -33,8 +33,12 @@ export function WorkspaceCard({ workspace, index = 0 }: { workspace: Workspace; 
               <p className="text-base font-bold tracking-[-0.02em] text-[var(--ll-text-primary)]">
                 {workspace.company.name}
               </p>
-              <p className="mt-1 font-mono text-xs text-[var(--ll-text-tertiary)]">
-                {workspace.company.ticker} · {workspace.company.sector}
+              <p className="mt-1 text-xs text-[var(--ll-text-tertiary)]">
+                <span className="font-semibold tabular-nums text-[var(--ll-text-secondary)]">
+                  {workspace.company.ticker}
+                </span>
+                <span className="text-[var(--ll-text-tertiary)]"> · </span>
+                {workspace.company.sector}
               </p>
             </div>
             <div
@@ -54,13 +58,13 @@ export function WorkspaceCard({ workspace, index = 0 }: { workspace: Workspace; 
           <div className="flex items-center justify-between border-t border-[var(--ll-border-hairline)] pt-3">
             <div>
               <p className="mb-0.5 text-[11px] text-[var(--ll-text-tertiary)]">Latest filing</p>
-              <p className="font-mono text-xs font-medium text-[var(--ll-text-secondary)]">
+              <p className="text-xs font-medium text-[var(--ll-text-secondary)]">
                 {workspace.summary.latestFilingDate}
               </p>
             </div>
             <div className="text-right">
               <p className="mb-0.5 text-[11px] text-[var(--ll-text-tertiary)]">Saved evidence</p>
-              <p className="font-mono text-xs font-medium text-[var(--ll-text-secondary)]">
+              <p className="text-xs font-medium tabular-nums text-[var(--ll-text-secondary)]">
                 {workspace.bookmarkCount} items
               </p>
             </div>

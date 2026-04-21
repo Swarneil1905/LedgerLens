@@ -66,9 +66,7 @@ export function CompanySearch() {
 
   return (
     <div className="px-8 pb-6">
-      <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--ll-text-tertiary)]">
-        Company search
-      </p>
+      <p className="ll-section-label mb-3">Company search</p>
 
       <div className="relative">
         <div
@@ -135,8 +133,12 @@ export function CompanySearch() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-[var(--ll-text-primary)]">{company.name}</p>
-                      <p className="mt-0.5 font-mono text-xs text-[var(--ll-text-tertiary)]">
-                        {company.ticker} · {company.sector}
+                      <p className="mt-0.5 text-xs text-[var(--ll-text-tertiary)]">
+                        <span className="font-semibold tabular-nums text-[var(--ll-text-secondary)]">
+                          {company.ticker}
+                        </span>
+                        <span> · </span>
+                        {company.sector}
                       </p>
                     </div>
                   </div>

@@ -173,7 +173,7 @@ export function ChatSessionPanel({ sessionId, ticker, initialMessages }: ChatSes
                 key={src.label}
                 type="button"
                 className={cn(
-                  "flex h-6 cursor-pointer items-center gap-1.5 rounded-[var(--ll-radius-xs)] border border-[var(--ll-border-default)] bg-[var(--ll-bg-elevated)] px-2.5 text-[10px] font-semibold tracking-[0.07em] transition-colors duration-150 hover:border-[var(--ll-border-strong)]"
+                  "flex h-7 cursor-pointer items-center gap-1.5 rounded-[var(--ll-radius-xs)] border border-[var(--ll-border-default)] bg-[var(--ll-bg-elevated)] px-2.5 text-xs font-medium transition-colors duration-150 hover:border-[var(--ll-border-strong)]"
                 )}
                 style={{ color: src.color }}
               >
@@ -181,7 +181,7 @@ export function ChatSessionPanel({ sessionId, ticker, initialMessages }: ChatSes
                 {src.label}
               </button>
             ))}
-            <span className="ml-auto font-mono text-[10px] text-[var(--ll-text-tertiary)]">
+            <span className="ml-auto max-w-[min(100%,220px)] text-right text-xs leading-snug text-[var(--ll-text-tertiary)]">
               Grounded on SEC, FRED, and news where indexed for {ticker}
             </span>
           </div>

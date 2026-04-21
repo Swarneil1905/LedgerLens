@@ -29,26 +29,24 @@ export function Sidebar({ workspaceHref }: { workspaceHref?: string }) {
         <div className="flex items-center gap-2">
           <div
             className={cn(
-              "flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-[var(--ll-radius-sm)]",
+              "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[var(--ll-radius-md)]",
               "border border-[var(--ll-accent-border)] bg-[var(--ll-accent-dim)]"
             )}
           >
-            <TrendingUp size={12} className="text-[var(--ll-accent)]" />
+            <TrendingUp size={15} className="text-[var(--ll-accent)]" strokeWidth={1.75} />
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--ll-text-tertiary)]">
+            <p className="text-base font-semibold leading-tight tracking-[-0.03em] text-[var(--ll-text-primary)]">
               LedgerLens
             </p>
-            <p className="mt-0.5 text-sm font-bold leading-none tracking-[-0.02em] text-[var(--ll-text-primary)]">
+            <p className="mt-1 text-xs font-medium uppercase tracking-[0.08em] text-[var(--ll-text-tertiary)]">
               Workspace
             </p>
           </div>
         </div>
       </div>
 
-      <p className="mb-2 px-4 text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--ll-text-tertiary)]">
-        Navigate
-      </p>
+      <p className="ll-section-label mb-2 px-4">Navigate</p>
 
       <nav className="flex flex-col gap-0.5 px-2">
         {NAV_ITEMS.map((item, i) => {
@@ -121,7 +119,7 @@ export function Sidebar({ workspaceHref }: { workspaceHref?: string }) {
       <div className="flex-1" />
 
       <div className="px-4 pb-2">
-        <p className="font-mono text-[10px] leading-relaxed text-[var(--ll-text-tertiary)]">v1 · local</p>
+        <p className="text-xs leading-relaxed text-[var(--ll-text-tertiary)]">v1 · local</p>
       </div>
     </div>
   );

@@ -30,7 +30,7 @@ export function TopBar() {
                 <Link
                   href={crumb.href}
                   className={cn(
-                    "truncate font-mono text-sm tracking-[-0.01em]",
+                    "truncate text-sm tracking-[-0.01em]",
                     i === crumbs.length - 1
                       ? "font-semibold text-[var(--ll-text-primary)]"
                       : "font-medium text-[var(--ll-text-tertiary)] hover:text-[var(--ll-text-secondary)]"
@@ -41,7 +41,7 @@ export function TopBar() {
               ) : (
                 <span
                   className={cn(
-                    "truncate font-mono text-sm tracking-[-0.01em]",
+                    "truncate text-sm tracking-[-0.01em]",
                     i === crumbs.length - 1
                       ? "font-semibold text-[var(--ll-text-primary)]"
                       : "font-medium text-[var(--ll-text-tertiary)]"
@@ -61,14 +61,14 @@ export function TopBar() {
           className="flex min-w-0 flex-1 items-baseline gap-3.5"
         >
           <div
-            className="max-w-[min(420px,50vw)] truncate font-mono text-sm font-semibold tracking-[-0.01em] text-[var(--ll-text-secondary)]"
+            className="max-w-[min(420px,50vw)] truncate text-sm font-semibold tracking-[-0.01em] text-[var(--ll-text-secondary)]"
           >
             {title}
           </div>
           {subtitle ? (
             <span
               className={cn(
-                "flex-shrink-0 font-mono text-xs font-semibold tracking-[0.02em]",
+                "flex-shrink-0 text-xs font-semibold tracking-wide tabular-nums",
                 isTicker ? "text-[var(--ll-accent)]" : "text-[var(--ll-text-tertiary)]"
               )}
             >
@@ -98,7 +98,7 @@ function TopBarButton({ icon: Icon, label }: { icon: LucideIcon; label: string }
       type="button"
       className={cn(
         "flex h-8 cursor-pointer items-center gap-1.5 rounded-[var(--ll-radius-md)] border border-[var(--ll-border-default)]",
-        "bg-[var(--ll-bg-elevated)] px-3 text-[10px] font-semibold uppercase tracking-[0.07em] text-[var(--ll-text-secondary)]",
+        "bg-[var(--ll-bg-elevated)] px-3 text-xs font-medium text-[var(--ll-text-secondary)]",
         "transition-all duration-150 hover:border-[var(--ll-border-strong)] hover:bg-[var(--ll-bg-overlay)] hover:text-[var(--ll-text-primary)]"
       )}
     >

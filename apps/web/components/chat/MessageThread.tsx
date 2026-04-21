@@ -32,9 +32,7 @@ export function MessageThread({ messages, isStreaming, onFollowUp }: MessageThre
                 className="flex justify-end px-6 py-5"
               >
                 <div className="ml-12 max-w-[80%] rounded-[var(--ll-radius-lg)] rounded-br-[var(--ll-radius-xs)] border border-[var(--ll-border-default)] bg-[var(--ll-bg-surface)] px-5 py-3">
-                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ll-text-tertiary)]">
-                    User query
-                  </p>
+                  <p className="ll-section-label mb-2">User query</p>
                   <p className="text-sm leading-relaxed text-[var(--ll-text-secondary)]">{message.content}</p>
                 </div>
               </motion.div>
@@ -50,18 +48,14 @@ export function MessageThread({ messages, isStreaming, onFollowUp }: MessageThre
                     <div className="flex h-5 w-5 items-center justify-center rounded-[var(--ll-radius-xs)] bg-[var(--ll-accent)]">
                       <TrendingUp size={11} className="text-[var(--ll-text-inverse)]" strokeWidth={2} />
                     </div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ll-text-tertiary)]">
-                      LedgerLens answer
-                    </p>
+                    <p className="text-xs font-semibold text-[var(--ll-text-tertiary)]">LedgerLens answer</p>
                   </div>
                   <div className="flex items-center gap-2">
                     {streamingAssistant && message.id === "streaming-assistant" ? (
-                      <span className="font-mono text-[10px] tracking-[0.04em] text-[var(--ll-text-tertiary)]">
-                        Generating
-                      </span>
+                      <span className="text-xs text-[var(--ll-text-tertiary)]">Generating</span>
                     ) : null}
                     {message.sources?.length ? (
-                      <span className="font-mono text-[10px] text-[var(--ll-text-tertiary)]">
+                      <span className="text-xs text-[var(--ll-text-tertiary)]">
                         {message.sources.length} sources linked
                       </span>
                     ) : null}
@@ -75,9 +69,7 @@ export function MessageThread({ messages, isStreaming, onFollowUp }: MessageThre
 
                   {message.followUps?.length ? (
                     <div className="border-t border-[var(--ll-border-hairline)] px-5 py-3">
-                      <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ll-text-tertiary)]">
-                        Follow-up questions
-                      </p>
+                      <p className="ll-section-label mb-2.5">Follow-up questions</p>
                       <div className="flex flex-wrap gap-2">
                         {message.followUps.map((item, i) => (
                           <motion.button
