@@ -61,10 +61,11 @@ export function Sidebar({ workspaceHref }: { workspaceHref?: string }) {
               <Link
                 href={item.href}
                 className={cn(
-                  "group relative flex h-9 items-center gap-2.5 rounded-[var(--ll-radius-md)] text-sm font-medium transition-all duration-150",
+                  "group relative flex h-9 items-center gap-2.5 rounded-[var(--ll-radius-md)] text-sm font-medium outline-none transition-all duration-150",
                   isActive
                     ? "border-l-2 border-[var(--ll-accent)] bg-[var(--ll-bg-elevated)] pl-[10px] pr-3 text-[var(--ll-text-primary)]"
-                    : "px-3 text-[var(--ll-text-secondary)] hover:bg-[var(--ll-bg-elevated)] hover:text-[var(--ll-text-primary)]"
+                    : "px-3 text-[var(--ll-text-secondary)] hover:bg-[var(--ll-bg-elevated)] hover:text-[var(--ll-text-primary)]",
+                  "focus-visible:ring-2 focus-visible:ring-[var(--ll-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ll-bg-base)]"
                 )}
               >
                 <item.icon
@@ -93,10 +94,11 @@ export function Sidebar({ workspaceHref }: { workspaceHref?: string }) {
           <Link
             href={workspaceLink}
             className={cn(
-              "group relative flex h-9 items-center gap-2.5 rounded-[var(--ll-radius-md)] text-sm font-medium transition-all duration-150",
+              "group relative flex h-9 items-center gap-2.5 rounded-[var(--ll-radius-md)] text-sm font-medium outline-none transition-all duration-150",
               workspaceActive
                 ? "border-l-2 border-[var(--ll-accent)] bg-[var(--ll-bg-elevated)] pl-[10px] pr-3 text-[var(--ll-text-primary)]"
-                : "px-3 text-[var(--ll-text-secondary)] hover:bg-[var(--ll-bg-elevated)] hover:text-[var(--ll-text-primary)]"
+                : "px-3 text-[var(--ll-text-secondary)] hover:bg-[var(--ll-bg-elevated)] hover:text-[var(--ll-text-primary)]",
+              "focus-visible:ring-2 focus-visible:ring-[var(--ll-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ll-bg-base)]"
             )}
           >
             <Building2

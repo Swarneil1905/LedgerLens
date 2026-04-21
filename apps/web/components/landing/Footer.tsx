@@ -43,15 +43,13 @@ export function Footer() {
 
           {Object.entries(FOOTER_LINKS).map(([group, links]) => (
             <div key={group}>
-              <p className="mb-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--ll-text-tertiary)]">
-                {group}
-              </p>
+              <p className="ll-section-label mb-3">{group}</p>
               <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-[var(--ll-text-tertiary)] transition-colors duration-150 hover:text-[var(--ll-text-primary)]"
+                      className="rounded-[var(--ll-radius-sm)] text-sm text-[var(--ll-text-tertiary)] outline-none transition-colors duration-150 hover:text-[var(--ll-text-primary)] focus-visible:ring-2 focus-visible:ring-[var(--ll-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ll-bg-base)]"
                     >
                       {link.label}
                     </Link>

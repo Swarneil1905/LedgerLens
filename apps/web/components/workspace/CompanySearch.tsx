@@ -91,7 +91,7 @@ export function CompanySearch() {
               onFocus={() => setFocused(true)}
               onBlur={() => setTimeout(() => setFocused(false), 150)}
               autoComplete="off"
-              placeholder="Search by company name or ticker…"
+              placeholder="Company or ticker"
               className={cn(
                 "flex-1 border-none bg-transparent font-[var(--ll-font-ui)] text-sm text-[var(--ll-text-primary)] outline-none",
                 "placeholder:text-[var(--ll-text-tertiary)]"

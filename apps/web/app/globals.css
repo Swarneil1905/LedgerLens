@@ -102,6 +102,7 @@ body {
   background: var(--ll-bg-base);
   color: var(--ll-text-primary);
   font-family: var(--ll-font-ui);
+  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

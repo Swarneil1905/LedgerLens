@@ -39,7 +39,10 @@ export function Navbar() {
         )}
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <Link href="/" className="group flex items-center gap-2.5">
+          <Link
+            href="/"
+            className="group flex items-center gap-2.5 rounded-[var(--ll-radius-md)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--ll-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ll-bg-base)]"
+          >
             <div
               className={cn(
                 "flex h-8 w-8 items-center justify-center rounded-[var(--ll-radius-md)]",
@@ -62,8 +65,9 @@ export function Navbar() {
                 key={link.label}
                 href={link.href}
                 className={cn(
-                  "rounded-[var(--ll-radius-md)] px-4 py-2 text-sm font-medium text-[var(--ll-text-secondary)]",
-                  "transition-all duration-150 hover:bg-[var(--ll-bg-elevated)] hover:text-[var(--ll-text-primary)]"
+                  "rounded-[var(--ll-radius-md)] px-4 py-2 text-sm font-medium text-[var(--ll-text-secondary)] outline-none",
+                  "transition-all duration-150 hover:bg-[var(--ll-bg-elevated)] hover:text-[var(--ll-text-primary)]",
+                  "focus-visible:ring-2 focus-visible:ring-[var(--ll-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ll-bg-base)]"
                 )}
               >
                 {link.label}
@@ -74,7 +78,7 @@ export function Navbar() {
           <div className="hidden items-center gap-3 md:flex">
             <Link
               href="/work"
-              className="text-sm font-medium text-[var(--ll-text-secondary)] transition-colors hover:text-[var(--ll-text-primary)]"
+              className="rounded-[var(--ll-radius-md)] px-1 py-0.5 text-sm font-medium text-[var(--ll-text-secondary)] outline-none transition-colors hover:text-[var(--ll-text-primary)] focus-visible:ring-2 focus-visible:ring-[var(--ll-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ll-bg-base)]"
             >
               Sign in
             </Link>
@@ -85,7 +89,7 @@ export function Navbar() {
 
           <button
             type="button"
-            className="p-2 text-[var(--ll-text-secondary)] hover:text-[var(--ll-text-primary)] md:hidden"
+            className="rounded-[var(--ll-radius-md)] p-2 text-[var(--ll-text-secondary)] outline-none hover:text-[var(--ll-text-primary)] focus-visible:ring-2 focus-visible:ring-[var(--ll-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ll-bg-base)] md:hidden"
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle menu"
           >
@@ -111,8 +115,9 @@ export function Navbar() {
                 key={link.label}
                 href={link.href}
                 className={cn(
-                  "rounded-[var(--ll-radius-md)] px-4 py-3 text-sm font-medium text-[var(--ll-text-secondary)]",
-                  "transition-all duration-150 hover:bg-[var(--ll-bg-elevated)] hover:text-[var(--ll-text-primary)]"
+                  "rounded-[var(--ll-radius-md)] px-4 py-3 text-sm font-medium text-[var(--ll-text-secondary)] outline-none",
+                  "transition-all duration-150 hover:bg-[var(--ll-bg-elevated)] hover:text-[var(--ll-text-primary)]",
+                  "focus-visible:ring-2 focus-visible:ring-[var(--ll-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ll-bg-surface)]"
                 )}
                 onClick={() => setMobileOpen(false)}
               >

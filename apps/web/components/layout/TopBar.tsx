@@ -30,10 +30,11 @@ export function TopBar() {
                 <Link
                   href={crumb.href}
                   className={cn(
-                    "truncate text-sm tracking-[-0.01em]",
+                    "truncate rounded-[var(--ll-radius-sm)] text-sm tracking-[-0.01em] outline-none",
                     i === crumbs.length - 1
                       ? "font-semibold text-[var(--ll-text-primary)]"
-                      : "font-medium text-[var(--ll-text-tertiary)] hover:text-[var(--ll-text-secondary)]"
+                      : "font-medium text-[var(--ll-text-tertiary)] hover:text-[var(--ll-text-secondary)]",
+                    "focus-visible:ring-2 focus-visible:ring-[var(--ll-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ll-bg-base)]"
                   )}
                 >
                   {crumb.label}
@@ -99,7 +100,8 @@ function TopBarButton({ icon: Icon, label }: { icon: LucideIcon; label: string }
       className={cn(
         "flex h-8 cursor-pointer items-center gap-1.5 rounded-[var(--ll-radius-md)] border border-[var(--ll-border-default)]",
         "bg-[var(--ll-bg-elevated)] px-3 text-xs font-medium text-[var(--ll-text-secondary)]",
-        "transition-all duration-150 hover:border-[var(--ll-border-strong)] hover:bg-[var(--ll-bg-overlay)] hover:text-[var(--ll-text-primary)]"
+        "outline-none transition-all duration-150 hover:border-[var(--ll-border-strong)] hover:bg-[var(--ll-bg-overlay)] hover:text-[var(--ll-text-primary)]",
+        "active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[var(--ll-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ll-bg-base)]"
       )}
     >
       <Icon size={12} strokeWidth={1.5} />

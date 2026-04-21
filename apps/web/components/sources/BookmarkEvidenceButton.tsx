@@ -34,8 +34,9 @@ export function BookmarkEvidenceButton({ sourceId }: { sourceId: string }) {
         onClick={() => void save()}
         disabled={saved}
         className={cn(
-          "inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--ll-radius-sm)] border border-[var(--ll-border-default)] bg-[var(--ll-bg-overlay)] px-2.5 py-1.5 text-xs font-semibold text-[var(--ll-text-secondary)] transition-colors duration-150",
-          "hover:border-[var(--ll-accent-border)] hover:text-[var(--ll-accent)] disabled:cursor-default disabled:opacity-60"
+          "inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--ll-radius-sm)] border border-[var(--ll-border-default)] bg-[var(--ll-bg-overlay)] px-2.5 py-1.5 text-xs font-semibold text-[var(--ll-text-secondary)] outline-none transition-colors duration-150",
+          "hover:border-[var(--ll-accent-border)] hover:text-[var(--ll-accent)] disabled:cursor-default disabled:opacity-60",
+          "focus-visible:ring-2 focus-visible:ring-[var(--ll-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ll-bg-elevated)] active:scale-[0.98]"
         )}
       >
         <Bookmark size={12} strokeWidth={2} />

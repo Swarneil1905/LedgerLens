@@ -74,8 +74,9 @@ function DrawerTabButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "relative flex h-10 flex-1 cursor-pointer items-center justify-center gap-1.5 px-4 text-sm font-medium transition-colors duration-150",
-        active ? "text-[var(--ll-text-primary)]" : "text-[var(--ll-text-tertiary)] hover:text-[var(--ll-text-secondary)]"
+        "relative flex h-10 flex-1 cursor-pointer items-center justify-center gap-1.5 px-4 text-sm font-medium outline-none transition-colors duration-150",
+        active ? "text-[var(--ll-text-primary)]" : "text-[var(--ll-text-tertiary)] hover:text-[var(--ll-text-secondary)]",
+        "focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ll-accent)]/60"
       )}
     >
       <Icon size={12} strokeWidth={1.5} />
