@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -12,11 +13,24 @@ async def lifespan(_: FastAPI):
     yield
 
 
+def _cors_allow_origins() -> list[str]:
+    defaults = ["http://localhost:3000"]
+    extra = os.getenv("ALLOWED_ORIGINS", "")
+    parsed = [o.strip() for o in extra.split(",") if o.strip()]
+    seen: set[str] = set()
+    out: list[str] = []
+    for origin in defaults + parsed:
+        if origin not in seen:
+            seen.add(origin)
+            out.append(origin)
+    return out
+
+
 app = FastAPI(title="LedgerLens API", version="1.0.0", lifespan=lifespan)
 register_middleware(app)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=_cors_allow_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
