@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -8,7 +9,11 @@ from schemas.chat import ChatHistoryResponse
 from schemas.source import BookmarkResponse, SourceResponse, SourceType
 from schemas.workspace import CompanyResponse, WorkspaceResponse, WorkspaceSummaryResponse
 
+from database.config import is_database_configured
+from database.repository import load_sources_for_ticker, replace_sources_for_ticker
 from memory.models import BookmarkModel
+
+logger = logging.getLogger(__name__)
 
 _companies = [
     CompanyResponse(
@@ -143,7 +148,12 @@ def get_workspace(workspace_id: str) -> WorkspaceResponse | None:
 
 
 def replace_company_sources(ticker: str, sources: list[SourceResponse]) -> None:
-    _sources_by_ticker[ticker.upper()] = list(sources)
+    upper = ticker.upper()
+    _sources_by_ticker[upper] = list(sources)
+    try:
+        replace_sources_for_ticker(upper, sources)
+    except Exception:
+        logger.exception("Postgres source persist failed for %s; in-memory cache still updated", upper)
 
 
 def get_chat_history(session_id: str) -> list[ChatHistoryResponse]:
@@ -193,6 +203,10 @@ def list_bookmarks() -> list[BookmarkResponse]:
 
 def get_company_sources(ticker: str) -> list[SourceResponse]:
     upper = ticker.upper()
+    if is_database_configured():
+        db_rows = load_sources_for_ticker(upper)
+        if db_rows:
+            return db_rows
     if upper in _sources_by_ticker:
         return list(_sources_by_ticker[upper])
     return []

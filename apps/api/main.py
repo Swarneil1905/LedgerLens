@@ -1,3 +1,4 @@
+import logging
 import os
 from contextlib import asynccontextmanager
 
@@ -6,10 +7,21 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.middleware import register_middleware
 from api.routes import bookmarks, charts, chat, companies, health, sources, workspace
+from database.config import is_database_configured
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    if is_database_configured():
+        try:
+            from database.session import init_schema
+
+            init_schema()
+            logger.info("ledgerlens: postgres schema ready")
+        except Exception:
+            logger.exception("ledgerlens: postgres schema init failed; API will keep running without DB tables")
     yield
 
 

@@ -1,5 +1,10 @@
 # API Spec
 
+## Connectors and storage
+
+- `POST /sources/refresh` pulls live SEC submissions (requires descriptive `SEC_HTTP_USER_AGENT`), latest FRED observation when `FRED_API_KEY` is set, and NewsAPI articles when `NEWS_API_KEY` is set.
+- With `DATABASE_URL`, ingested sources and search chunks are written to Postgres; `GET /sources/company/{ticker}` prefers the database after a refresh.
+
 ## Implemented route surface
 
 - `GET /health`

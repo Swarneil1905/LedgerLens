@@ -1,17 +1,8 @@
-from schemas.source import SourceResponse, SourceType
+import httpx
+
+from schemas.source import SourceResponse
 
 
-async def fetch_news(ticker: str) -> list[SourceResponse]:
-    return [
-        SourceResponse(
-            id=f"{ticker.lower()}-news-c",
-            source_type=SourceType.NEWS,
-            title=f"{ticker} news provider C",
-            provider="GDELT",
-            date="2026-04-15T00:00:00Z",
-            url=None,
-            ticker=ticker,
-            snippet="Fallback open-web news connector placeholder.",
-            metadata={"provider_slot": "c"},
-        )
-    ]
+async def fetch_news(_client: httpx.AsyncClient, _ticker: str) -> list[SourceResponse]:
+    """Reserved for open-web or archival feeds; keep a single live path first."""
+    return []

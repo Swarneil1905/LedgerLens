@@ -9,6 +9,7 @@
 ## Next implementation priorities
 
 1. Replace frontend mock data with typed backend fetches.
-2. Add real source connectors for SEC, FRED, and news providers.
-3. Move persistence from in-memory stubs to Postgres and Redis.
+2. Live SEC / FRED / NewsAPI pulls are wired behind env keys; extend with more vendors, caching, and backoff policies.
+3. Postgres stores ingested sources and FTS chunks when `DATABASE_URL` is set; Redis remains optional for sessions and rate limits.
 4. Replace placeholder SSE text generation with an LLM provider abstraction and grounded retrieval context.
+5. Add pgvector (or hosted embeddings) if semantic retrieval should go beyond keyword FTS.
