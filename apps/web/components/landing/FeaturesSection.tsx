@@ -3,7 +3,6 @@
 import { motion } from "motion/react";
 
 import { FeaturesGrid } from "@/components/landing/FeaturesGrid";
-import { LANDING_FEATURES } from "@/lib/landing-features";
 
 export function FeaturesSection() {
   return (
@@ -40,7 +39,7 @@ export function FeaturesSection() {
           </motion.p>
         </div>
 
-        <FeaturesGrid features={LANDING_FEATURES} />
+        <FeaturesGrid />
       </div>
     </section>
   );

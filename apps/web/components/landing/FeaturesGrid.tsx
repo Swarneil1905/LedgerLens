@@ -4,8 +4,9 @@ import { motion } from "motion/react";
 
 import { SpotlightCard } from "@/components/effects/SpotlightCard";
 import type { LandingFeature } from "@/lib/landing-features";
+import { LANDING_FEATURES } from "@/lib/landing-features";
 
-export function FeaturesGrid({ features }: { features: LandingFeature[] }) {
+export function FeaturesGrid({ features = LANDING_FEATURES }: { features?: LandingFeature[] }) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {features.map((feature, i) => (

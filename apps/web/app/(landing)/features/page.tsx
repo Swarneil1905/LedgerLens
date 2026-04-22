@@ -5,7 +5,6 @@ import { FeaturesGrid } from "@/components/landing/FeaturesGrid";
 import { Footer } from "@/components/landing/Footer";
 import { Navbar } from "@/components/landing/Navbar";
 import { GlowButton } from "@/components/effects/GlowButton";
-import { LANDING_FEATURES } from "@/lib/landing-features";
 
 export const metadata: Metadata = {
   title: "Features",
@@ -43,7 +42,7 @@ export default function FeaturesPage() {
             <h2 id="features-grid-heading" className="sr-only">
               Feature list
             </h2>
-            <FeaturesGrid features={LANDING_FEATURES} />
+            <FeaturesGrid />
           </div>
         </section>
 
