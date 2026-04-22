@@ -3,14 +3,14 @@ import { TrendingUp } from "lucide-react";
 
 const FOOTER_LINKS: Record<string, { label: string; href: string }[]> = {
   Product: [
-    { label: "Features", href: "/#features" },
+    { label: "Features", href: "/features" },
     { label: "Pricing", href: "/#pricing" },
     { label: "Workspace", href: "/work" }
   ],
   Data: [
-    { label: "SEC EDGAR", href: "#data-sources" },
-    { label: "FRED", href: "#data-sources" },
-    { label: "News sources", href: "#data-sources" }
+    { label: "SEC EDGAR", href: "/#data-sources" },
+    { label: "FRED", href: "/#data-sources" },
+    { label: "News sources", href: "/#data-sources" }
   ],
   Company: [
     { label: "About", href: "#" },

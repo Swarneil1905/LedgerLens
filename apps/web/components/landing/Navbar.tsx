@@ -9,7 +9,7 @@ import { GlowButton } from "@/components/effects/GlowButton";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { label: "Features", href: "#features" },
+  { label: "Features", href: "/features" },
   { label: "How it works", href: "#how-it-works" },
   { label: "Data sources", href: "#data-sources" },
   { label: "Pricing", href: "#pricing" }
