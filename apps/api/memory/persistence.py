@@ -204,9 +204,15 @@ def list_bookmarks() -> list[BookmarkResponse]:
 def get_company_sources(ticker: str) -> list[SourceResponse]:
     upper = ticker.upper()
     if is_database_configured():
-        db_rows = load_sources_for_ticker(upper)
-        if db_rows:
-            return db_rows
+        try:
+            db_rows = load_sources_for_ticker(upper)
+            if db_rows:
+                return db_rows
+        except Exception:
+            logger.exception(
+                "Postgres source load failed for %s; falling back to in-memory cache",
+                upper,
+            )
     if upper in _sources_by_ticker:
         return list(_sources_by_ticker[upper])
     return []

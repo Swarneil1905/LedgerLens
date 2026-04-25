@@ -22,6 +22,8 @@ export default async function CompanyWorkspacePage({ params }: PageProps) {
     }
 
     const apiBaseUrl = getApiBaseUrl();
+    const statusLine =
+      err instanceof ApiError && err.status !== undefined ? `API returned ${err.status}` : "API request failed";
     return (
       <>
         <WorkspaceHeaderHydrator
@@ -38,7 +40,7 @@ export default async function CompanyWorkspacePage({ params }: PageProps) {
               Could not load this workspace
             </h1>
             <p className="muted" style={{ lineHeight: 1.7 }}>
-              The web app couldn’t reach the LedgerLens API, or the API is misconfigured in this deployment.
+              {statusLine}. This usually means the API is down, crashing on that endpoint, or misconfigured.
             </p>
             <div style={{ marginTop: 14 }} className="muted mono">
               <div>API base URL: {apiBaseUrl}</div>
@@ -46,8 +48,8 @@ export default async function CompanyWorkspacePage({ params }: PageProps) {
               <div style={{ marginTop: 10 }}>Error: {err instanceof Error ? err.message : String(err)}</div>
             </div>
             <p className="muted" style={{ marginTop: 14, lineHeight: 1.7 }}>
-              In production, set <span className="mono">NEXT_PUBLIC_API_BASE_URL</span> to your deployed API URL
-              (not <span className="mono">http://localhost:8000</span>).
+              If this is a 500, check the API logs for the stack trace. If this is a network error, set{" "}
+              <span className="mono">NEXT_PUBLIC_API_BASE_URL</span> to your deployed API URL.
             </p>
           </section>
         </div>
