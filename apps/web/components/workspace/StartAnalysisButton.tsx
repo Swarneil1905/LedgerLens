@@ -48,7 +48,7 @@ export function StartAnalysisButton({ ticker, href }: { ticker: string; href: st
         opacity: loading ? 0.85 : 1
       }}
     >
-      {loading ? "Refreshing…" : "Start analysis"}
+      Start analysis
     </button>
   );
 }
