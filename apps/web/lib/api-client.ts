@@ -7,8 +7,12 @@ export class ApiError extends Error {
   constructor(message: string, opts?: { status?: number; path?: string }) {
     super(message);
     this.name = "ApiError";
-    this.status = opts?.status;
-    this.path = opts?.path;
+    if (opts?.status !== undefined) {
+      this.status = opts.status;
+    }
+    if (opts?.path !== undefined) {
+      this.path = opts.path;
+    }
   }
 }
 
