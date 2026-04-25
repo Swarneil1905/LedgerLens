@@ -26,11 +26,20 @@ export function Sidebar({ workspaceHref }: { workspaceHref?: string }) {
   return (
     <div className="flex h-full flex-col py-4">
       <div className="mb-6 px-4">
-        <div className="flex items-center gap-2">
+        <Link
+          href="/work"
+          aria-label="LedgerLens workspace home"
+          className={cn(
+            "group flex items-center gap-2 rounded-[var(--ll-radius-md)] outline-none transition-colors duration-150",
+            "hover:bg-[var(--ll-bg-elevated)]",
+            "focus-visible:ring-2 focus-visible:ring-[var(--ll-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ll-bg-base)]"
+          )}
+        >
           <div
             className={cn(
               "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[var(--ll-radius-md)]",
-              "border border-[var(--ll-accent-border)] bg-[var(--ll-accent-dim)]"
+              "border border-[var(--ll-accent-border)] bg-[var(--ll-accent-dim)] transition-colors duration-150",
+              "group-hover:border-[var(--ll-accent)]"
             )}
           >
             <TrendingUp size={15} className="text-[var(--ll-accent)]" strokeWidth={1.75} />
@@ -43,7 +52,7 @@ export function Sidebar({ workspaceHref }: { workspaceHref?: string }) {
               Workspace
             </p>
           </div>
-        </div>
+        </Link>
       </div>
 
       <p className="ll-section-label mb-2 px-4">Navigate</p>

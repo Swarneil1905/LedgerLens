@@ -13,7 +13,7 @@ import type { Company } from "@ledgerlens/types/workspace";
 
 export function CompanySearch() {
   const router = useRouter();
-  const [query, setQuery] = useState("Apple");
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<Company[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
