@@ -20,7 +20,7 @@ const NAV_ITEMS: {
 
 export function Sidebar({ workspaceHref }: { workspaceHref?: string }) {
   const pathname = usePathname();
-  const workspaceLink = workspaceHref ?? "/workspace/apple";
+  const workspaceLink = workspaceHref ?? "/work";
   const workspaceActive = pathname.startsWith("/workspace/");
 
   return (

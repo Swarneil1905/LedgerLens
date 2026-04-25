@@ -5,7 +5,7 @@ import { apiGetJson } from "@/lib/api-client";
 import { mapWorkspace } from "@/lib/mappers";
 
 export default async function WorkspaceLayout({ children }: { children: ReactNode }) {
-  let workspaceHref = "/workspace/apple";
+  let workspaceHref = "/work";
   try {
     const rows = await apiGetJson<unknown[]>("/workspace");
     const first = rows[0];
@@ -14,7 +14,7 @@ export default async function WorkspaceLayout({ children }: { children: ReactNod
       workspaceHref = `/workspace/${mapped.id}`;
     }
   } catch {
-    workspaceHref = "/workspace/apple";
+    workspaceHref = "/work";
   }
 
   return (

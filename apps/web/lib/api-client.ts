@@ -1,5 +1,17 @@
 import { z } from "zod";
 
+export class ApiError extends Error {
+  status?: number;
+  path?: string;
+
+  constructor(message: string, opts?: { status?: number; path?: string }) {
+    super(message);
+    this.name = "ApiError";
+    this.status = opts?.status;
+    this.path = opts?.path;
+  }
+}
+
 const environmentSchema = z.object({
   NEXT_PUBLIC_API_BASE_URL: z.string().url().default("http://localhost:8000")
 });
@@ -16,10 +28,20 @@ export function getApiBaseUrl() {
 }
 
 export async function apiGetJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${getApiBaseUrl()}${path}`, { cache: "no-store" });
-  if (!response.ok) {
-    throw new Error(`GET ${path} failed with ${response.status}`);
+  let response: Response;
+  try {
+    response = await fetch(`${getApiBaseUrl()}${path}`, { cache: "no-store" });
+  } catch (err) {
+    throw new ApiError(
+      err instanceof Error ? err.message : `GET ${path} failed (network error)`,
+      { path }
+    );
   }
+
+  if (!response.ok) {
+    throw new ApiError(`GET ${path} failed with ${response.status}`, { status: response.status, path });
+  }
+
   return response.json() as Promise<T>;
 }
 
@@ -27,13 +49,23 @@ export async function apiPostJson<TResponse, TBody extends object>(
   path: string,
   body: TBody
 ): Promise<TResponse> {
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  if (!response.ok) {
-    throw new Error(`POST ${path} failed with ${response.status}`);
+  let response: Response;
+  try {
+    response = await fetch(`${getApiBaseUrl()}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+  } catch (err) {
+    throw new ApiError(
+      err instanceof Error ? err.message : `POST ${path} failed (network error)`,
+      { path }
+    );
   }
+
+  if (!response.ok) {
+    throw new ApiError(`POST ${path} failed with ${response.status}`, { status: response.status, path });
+  }
+
   return response.json() as Promise<TResponse>;
 }

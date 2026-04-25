@@ -2,7 +2,7 @@ import Link from "next/link";
 import { randomUUID } from "crypto";
 import type { Workspace } from "@ledgerlens/types/workspace";
 import { WorkspaceHeaderHydrator } from "@/components/layout/WorkspaceHeaderHydrator";
-import { apiGetJson } from "@/lib/api-client";
+import { ApiError, apiGetJson, getApiBaseUrl } from "@/lib/api-client";
 import { mapWorkspace } from "@/lib/mappers";
 import { notFound } from "next/navigation";
 
@@ -16,8 +16,43 @@ export default async function CompanyWorkspacePage({ params }: PageProps) {
   try {
     const row = await apiGetJson<unknown>(`/workspace/${id}`);
     workspace = mapWorkspace(row as Record<string, unknown>);
-  } catch {
-    notFound();
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) {
+      notFound();
+    }
+
+    const apiBaseUrl = getApiBaseUrl();
+    return (
+      <>
+        <WorkspaceHeaderHydrator
+          title="Workspace unavailable"
+          subtitle={id}
+          breadcrumb={[
+            { label: "Workspace", href: "/work" },
+            { label: id }
+          ]}
+        />
+        <div className="page-grid">
+          <section className="panel" style={{ padding: 24 }}>
+            <h1 style={{ margin: "6px 0 10px", fontSize: 22, letterSpacing: "-0.02em" }}>
+              Could not load this workspace
+            </h1>
+            <p className="muted" style={{ lineHeight: 1.7 }}>
+              The web app couldn’t reach the LedgerLens API, or the API is misconfigured in this deployment.
+            </p>
+            <div style={{ marginTop: 14 }} className="muted mono">
+              <div>API base URL: {apiBaseUrl}</div>
+              <div>Request: GET /workspace/{id}</div>
+              <div style={{ marginTop: 10 }}>Error: {err instanceof Error ? err.message : String(err)}</div>
+            </div>
+            <p className="muted" style={{ marginTop: 14, lineHeight: 1.7 }}>
+              In production, set <span className="mono">NEXT_PUBLIC_API_BASE_URL</span> to your deployed API URL
+              (not <span className="mono">http://localhost:8000</span>).
+            </p>
+          </section>
+        </div>
+      </>
+    );
   }
 
   const sessionId = randomUUID();
