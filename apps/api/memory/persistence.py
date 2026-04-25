@@ -12,19 +12,25 @@ from schemas.workspace import CompanyResponse, WorkspaceResponse, WorkspaceSumma
 from database.config import is_database_configured
 from database.repository import load_sources_for_ticker, replace_sources_for_ticker
 from memory.models import BookmarkModel
+from memory.sec_company_index import all_companies, load_company_index
 
 logger = logging.getLogger(__name__)
 
-_companies = [
+_LEGACY_SLUG_TO_TICKER: dict[str, str] = {
+    "apple": "AAPL",
+    "microsoft": "MSFT",
+}
+
+_DEMO_COMPANIES: list[CompanyResponse] = [
     CompanyResponse(
-        id="apple",
+        id="AAPL",
         name="Apple Inc.",
         ticker="AAPL",
         sector="Technology Hardware",
         market_cap="$2.7T",
     ),
     CompanyResponse(
-        id="microsoft",
+        id="MSFT",
         name="Microsoft",
         ticker="MSFT",
         sector="Software",
@@ -122,26 +128,56 @@ _session_messages: dict[str, list[ChatHistoryResponse]] = {}
 _bookmarks: list[BookmarkModel] = []
 
 
-def search_companies(query: str) -> list[CompanyResponse]:
-    normalized = query.lower()
-    return [
-        company
-        for company in _companies
-        if normalized in company.name.lower() or normalized in company.ticker.lower()
-    ]
+def _resolve_workspace_key(raw: str) -> str:
+    slug = raw.strip().lower()
+    return _LEGACY_SLUG_TO_TICKER.get(slug, raw.strip().upper())
 
 
-def list_workspaces() -> list[WorkspaceResponse]:
-    return [_build_workspace(company) for company in _companies]
+def _find_company(ticker: str) -> CompanyResponse | None:
+    upper = ticker.strip().upper()
+    if not upper:
+        return None
+    for company in all_companies():
+        if company.ticker == upper:
+            return company
+    return None
 
 
-def create_workspace(company_id: str) -> WorkspaceResponse:
-    company = next(item for item in _companies if item.id == company_id)
+def _synthetic_company(ticker: str) -> CompanyResponse:
+    upper = ticker.strip().upper()
+    return CompanyResponse(
+        id=upper,
+        name=upper,
+        ticker=upper,
+        sector="Public company",
+        market_cap="—",
+    )
+
+
+async def list_workspaces() -> list[WorkspaceResponse]:
+    # Intentionally lightweight: the full SEC universe is accessed via `/companies/search`.
+    return [_build_workspace(company) for company in _DEMO_COMPANIES]
+
+
+async def create_workspace(company_id: str) -> WorkspaceResponse | None:
+    await load_company_index()
+    ticker = _resolve_workspace_key(company_id)
+    if not ticker:
+        return None
+
+    company = _find_company(ticker)
+    if company is None:
+        return None
     return _build_workspace(company)
 
 
-def get_workspace(workspace_id: str) -> WorkspaceResponse | None:
-    company = next((item for item in _companies if item.id == workspace_id), None)
+async def get_workspace(workspace_id: str) -> WorkspaceResponse | None:
+    await load_company_index()
+    ticker = _resolve_workspace_key(workspace_id)
+    if not ticker:
+        return None
+
+    company = _find_company(ticker)
     if company is None:
         return None
     return _build_workspace(company)
