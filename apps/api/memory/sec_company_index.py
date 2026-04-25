@@ -21,22 +21,38 @@ _index_error: str | None = None
 
 
 def _parse_company_tickers_payload(payload: object) -> list[CompanyResponse]:
+    """
+    SEC publishes `company_tickers.json` as a JSON object keyed by row index:
+
+    {
+      "0": {"cik_str": 1045810, "ticker": "NVDA", "title": "NVIDIA CORP"},
+      ...
+    }
+    """
+
     if not isinstance(payload, dict):
-        return []
-    rows = payload.get("data")
-    if not isinstance(rows, list):
         return []
 
     out: list[CompanyResponse] = []
-    for row in rows:
-        if not isinstance(row, (list, tuple)) or len(row) < 3:
+    for _, row in payload.items():
+        if not isinstance(row, dict):
             continue
-        cik_val, tick, name = row[0], row[1], row[2]
+        cik_val = row.get("cik_str")
+        tick = row.get("ticker")
+        name = row.get("title")
+        if cik_val is None or tick is None or name is None:
+            continue
+
         ticker = str(tick).strip().upper()
         title = str(name).strip()
         if not ticker or not title:
             continue
-        cik = str(int(cik_val)).zfill(10)
+
+        try:
+            cik = str(int(cik_val)).zfill(10)
+        except (TypeError, ValueError):
+            continue
+
         out.append(
             CompanyResponse(
                 id=ticker,
@@ -54,7 +70,7 @@ async def load_company_index(*, force: bool = False) -> None:
     global _index, _index_loaded_at, _index_error
 
     async with _index_lock:
-        if _index is not None and not force:
+        if _index and not force:
             return
 
         try:
@@ -71,7 +87,8 @@ async def load_company_index(*, force: bool = False) -> None:
         except Exception as exc:
             _index_error = str(exc)
             logger.warning("SEC company index load failed: %s", exc, exc_info=True)
-            if _index is None:
+            # Do not cache an empty successful index on failure; allow retries on the next call.
+            if force:
                 _index = []
 
 

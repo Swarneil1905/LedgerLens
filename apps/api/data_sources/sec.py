@@ -81,15 +81,20 @@ async def _resolve_cik(client: httpx.AsyncClient, ticker: str) -> int | None:
     r = await client.get(_TICKER_JSON_URL, headers=sec_headers())
     r.raise_for_status()
     payload = r.json()
-    rows = payload.get("data")
-    if not isinstance(rows, list):
+    if not isinstance(payload, dict):
         return None
-    for row in rows:
-        if not isinstance(row, (list, tuple)) or len(row) < 3:
+    for row in payload.values():
+        if not isinstance(row, dict):
             continue
-        cik_val, tick, _name = row[0], row[1], row[2]
+        tick = row.get("ticker")
+        cik_val = row.get("cik_str")
+        if tick is None or cik_val is None:
+            continue
         if str(tick).upper() == ticker:
-            return int(cik_val)
+            try:
+                return int(cik_val)
+            except (TypeError, ValueError):
+                return None
     return None
 
 
