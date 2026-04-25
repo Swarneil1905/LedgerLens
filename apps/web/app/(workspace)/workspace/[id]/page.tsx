@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { randomUUID } from "crypto";
 import type { Workspace } from "@ledgerlens/types/workspace";
 import { WorkspaceHeaderHydrator } from "@/components/layout/WorkspaceHeaderHydrator";
+import { StartAnalysisButton } from "@/components/workspace/StartAnalysisButton";
 import { ApiError, apiGetJson, getApiBaseUrl } from "@/lib/api-client";
 import { mapWorkspace } from "@/lib/mappers";
 import { notFound } from "next/navigation";
@@ -82,22 +82,7 @@ export default async function CompanyWorkspacePage({ params }: PageProps) {
             {workspace.company.ticker} · {workspace.company.sector} · {workspace.company.marketCap}
           </p>
           <div style={{ marginTop: 18 }}>
-            <Link
-              href={chatHref}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "10px 14px",
-                borderRadius: "var(--ll-radius-md)",
-                background: "var(--ll-accent)",
-                color: "var(--ll-text-inverse)",
-                fontWeight: 600,
-                fontSize: 14
-              }}
-            >
-              Start analysis
-            </Link>
+            <StartAnalysisButton ticker={workspace.company.ticker} href={chatHref} />
           </div>
         </section>
         <section style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16 }}>
