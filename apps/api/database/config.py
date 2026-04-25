@@ -6,6 +6,8 @@ def database_url() -> str | None:
     if not raw or not raw.strip():
         return None
     url = raw.strip()
+    if url.startswith("postgresql+psycopg://"):
+        return url
     # SQLAlchemy defaults to psycopg2 for "postgresql://". This project uses psycopg3.
     if url.startswith("postgresql://"):
         return "postgresql+psycopg://" + url.removeprefix("postgresql://")
