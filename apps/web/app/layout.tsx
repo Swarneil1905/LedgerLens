@@ -16,6 +16,12 @@ import "./globals.css";
 
 const base = siteUrl();
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover"
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(base),
   title: {

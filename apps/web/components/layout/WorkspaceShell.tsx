@@ -37,13 +37,13 @@ export function WorkspaceShell({
       </div>
 
       <div className="relative z-10 flex flex-1 overflow-hidden">
-        <aside className="flex h-full w-[var(--ll-sidebar-width)] flex-shrink-0 flex-col overflow-y-auto border-r border-[var(--ll-border-hairline)] bg-[var(--ll-bg-base)]/95">
+        <aside className="hidden h-full w-[var(--ll-sidebar-width)] flex-shrink-0 flex-col overflow-y-auto border-r border-[var(--ll-border-hairline)] bg-[var(--ll-bg-base)]/95 md:flex">
           <Sidebar workspaceHref={workspaceHref ?? "/workspace/apple"} />
         </aside>
 
         <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-[var(--ll-bg-base)]">{children}</main>
 
-        <aside className="flex h-full w-[var(--ll-drawer-width)] flex-shrink-0 flex-col overflow-y-auto border-l border-[var(--ll-border-hairline)] bg-[var(--ll-bg-base)]/95">
+        <aside className="hidden h-full w-[var(--ll-drawer-width)] flex-shrink-0 flex-col overflow-y-auto border-l border-[var(--ll-border-hairline)] bg-[var(--ll-bg-base)]/95 xl:flex">
           <RightDrawer />
         </aside>
       </div>
