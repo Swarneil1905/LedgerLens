@@ -15,6 +15,12 @@ logger = logging.getLogger(__name__)
 _FRED_OBS_URL = "https://api.stlouisfed.org/fred/series/observations"
 
 
+def configured_macro_series_id() -> str:
+    """FRED `series_id` for the single macro chip on refresh; default FEDFUNDS."""
+    raw = os.getenv("FRED_SERIES_ID", "").strip()
+    return raw or "FEDFUNDS"
+
+
 async def fetch_series(
     client: httpx.AsyncClient, series_id: str, ticker: str | None = None
 ) -> SourceResponse | None:
@@ -35,7 +41,13 @@ async def fetch_series(
             timeout=default_timeout(),
         )
         r.raise_for_status()
-        payload: dict[str, Any] = r.json()
+        try:
+            payload = r.json()
+        except ValueError as exc:
+            logger.warning("FRED JSON parse failed for %s: %s", series_id, exc)
+            return None
+        if not isinstance(payload, dict):
+            return None
         obs = payload.get("observations") or []
         if not obs:
             return None
@@ -62,4 +74,7 @@ async def fetch_series(
         )
     except httpx.HTTPError as exc:
         logger.warning("FRED fetch failed for %s: %s", series_id, exc)
+        return None
+    except (KeyError, TypeError) as exc:
+        logger.warning("FRED payload shape unexpected for %s: %s", series_id, exc)
         return None

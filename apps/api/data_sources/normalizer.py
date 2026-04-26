@@ -9,7 +9,7 @@ from schemas.source import RefreshSourcesResponse, SourceResponse
 async def gather_company_sources(ticker: str) -> list[SourceResponse]:
     async with httpx.AsyncClient(timeout=default_timeout()) as client:
         filing_sources = await sec.fetch_filings(client, ticker)
-        macro = await fred.fetch_series(client, "FEDFUNDS", ticker)
+        macro = await fred.fetch_series(client, fred.configured_macro_series_id(), ticker)
         news_sources: list[SourceResponse] = []
         news_sources.extend(await news_a.fetch_news(client, ticker))
         news_sources.extend(await news_b.fetch_news(client, ticker))

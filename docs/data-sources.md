@@ -5,7 +5,7 @@
 | Provider | Module | Env vars | Notes |
 |----------|--------|----------|--------|
 | SEC EDGAR | `apps/api/data_sources/sec.py` | `SEC_HTTP_USER_AGENT` (recommended) | Uses `data.sec.gov` submissions JSON. Identify your traffic per SEC policy. |
-| FRED | `apps/api/data_sources/fred.py` | `FRED_API_KEY` | Latest observation for `FEDFUNDS` (configurable later). Skipped if unset. |
+| FRED | `apps/api/data_sources/fred.py` | `FRED_API_KEY`, optional `FRED_SERIES_ID` (default `FEDFUNDS`) | Latest observation for the configured series. Skipped if `FRED_API_KEY` unset. |
 | NewsAPI | `apps/api/data_sources/news_a.py` | `NEWS_API_KEY` | `everything` query by ticker, newest first. Skipped if unset. |
 | Extra wires | `news_b.py`, `news_c.py` | n/a | Return empty lists until additional vendors are wired. |
 

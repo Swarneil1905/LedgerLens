@@ -20,6 +20,7 @@ Copy `.env.example` to `apps/web/.env.local` for the frontend and export variabl
 
 - `NEXT_PUBLIC_API_BASE_URL`: FastAPI origin (default `http://localhost:8000`). You may also set `NEXT_PUBLIC_API_URL`; the web app accepts either.
 - Optional: `DATABASE_URL`: when set and reachable, `GET /health` reports `db_connected: true`.
+- For live macro on `POST /sources/refresh`, set **`FRED_API_KEY`** (see [FRED API keys](https://fred.stlouisfed.org/docs/api/api_key.html)) in the same environment as `uvicorn` (shell export, IDE run config, or container env). Optional **`FRED_SERIES_ID`** defaults to `FEDFUNDS`.
 
 ## Run locally
 
