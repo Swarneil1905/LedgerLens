@@ -36,7 +36,12 @@ export function CompanySearch() {
       const raw = (await response.json()) as unknown[];
       setResults(raw.map((row) => mapCompany(row as Record<string, unknown>)));
     } catch {
-      setError("Unable to reach the LedgerLens API. Is the backend running on port 8000?");
+      const base = getApiBaseUrl();
+      const hint =
+        base.includes("localhost") || base.includes("127.0.0.1")
+          ? `The app is using ${base} (default). On Railway, set NEXT_PUBLIC_API_BASE_URL on the **web** service to your public API URL (https://…), then redeploy web.`
+          : `Could not reach the API at ${base}. Check the API service is up, ALLOWED_ORIGINS includes this site’s URL, and CORS.`;
+      setError(`Unable to reach the LedgerLens API. ${hint}`);
       setResults([]);
     } finally {
       setLoading(false);

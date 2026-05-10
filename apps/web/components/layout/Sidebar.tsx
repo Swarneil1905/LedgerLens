@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { Bookmark, Building2, FolderOpen, Home, TrendingUp } from "lucide-react";
 
+import { getApiBaseUrl } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS: {
@@ -22,6 +23,9 @@ export function Sidebar({ workspaceHref }: { workspaceHref?: string }) {
   const pathname = usePathname();
   const workspaceLink = workspaceHref ?? "/work";
   const workspaceActive = pathname.startsWith("/workspace/");
+  const apiBase = getApiBaseUrl();
+  const apiEnvLabel =
+    apiBase.includes("localhost") || apiBase.includes("127.0.0.1") ? "local API" : "production API";
 
   return (
     <div className="flex h-full flex-col py-4">
@@ -130,7 +134,7 @@ export function Sidebar({ workspaceHref }: { workspaceHref?: string }) {
       <div className="flex-1" />
 
       <div className="px-4 pb-2">
-        <p className="text-xs leading-relaxed text-[var(--ll-text-tertiary)]">v1 · local</p>
+        <p className="text-xs leading-relaxed text-[var(--ll-text-tertiary)]">v1 · {apiEnvLabel}</p>
       </div>
     </div>
   );
