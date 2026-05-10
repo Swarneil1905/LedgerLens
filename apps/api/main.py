@@ -68,6 +68,15 @@ def _cors_middleware_kwargs() -> dict[str, object]:
 
 app = FastAPI(title="LedgerLens API", version="1.0.0", lifespan=lifespan)
 
+# CORS first (FastAPI/Starlette pattern): wraps the app before routes + other middleware.
+app.add_middleware(
+    CORSMiddleware,
+    **_cors_middleware_kwargs(),
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.get("/")
 async def root_liveness() -> dict[str, str]:
@@ -83,12 +92,4 @@ app.include_router(bookmarks.router, prefix="/bookmarks", tags=["bookmarks"])
 app.include_router(sources.router, prefix="/sources", tags=["sources"])
 app.include_router(charts.router, prefix="/charts", tags=["charts"])
 
-# CORS last among add_middleware so it wraps all routes and the request logger.
-app.add_middleware(
-    CORSMiddleware,
-    **_cors_middleware_kwargs(),
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 register_middleware(app)

@@ -1,0 +1,10 @@
+# Use when this Railway service has Root Directory set to `apps/api` (recommended for this repo).
+# Overrides dashboard drift: forces Docker image + explicit start + health probe on `/`.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "python serve.py"
+healthcheckPath = "/"
+healthcheckTimeout = 120
