@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import os
-from contextlib import asynccontextmanager, suppress
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,24 +24,24 @@ async def lifespan(_: FastAPI):
         except Exception:
             logger.exception("ledgerlens: postgres schema init failed; API will keep running without DB tables")
 
-    async def _warm_company_index() -> None:
-        """Preload SEC ticker index so first browser search does not hit Railway proxy timeouts."""
-        try:
-            from memory.sec_company_index import load_company_index
+    # Load SEC ticker list before serving traffic (bounded wait). Avoids a background
+    # task that must be cancelled on shutdown (noisy tracebacks on Ctrl+C locally) and
+    # reduces first-request 502s on Railway when the proxy times out before SEC returns.
+    try:
+        from memory.sec_company_index import load_company_index
 
-            await load_company_index()
-            logger.info("ledgerlens: SEC company index preload finished")
-        except asyncio.CancelledError:
-            raise
-        except Exception:
-            logger.exception("ledgerlens: SEC company index preload failed")
+        await asyncio.wait_for(load_company_index(), timeout=28.0)
+        logger.info("ledgerlens: SEC company index preload finished")
+    except TimeoutError:
+        logger.warning(
+            "ledgerlens: SEC company index preload timed out; company search may be empty until SEC responds"
+        )
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        logger.exception("ledgerlens: SEC company index preload failed")
 
-    warm_task = asyncio.create_task(_warm_company_index())
     yield
-    if not warm_task.done():
-        warm_task.cancel()
-        with suppress(asyncio.CancelledError):
-            await warm_task
 
 
 def _cors_allow_origins() -> list[str]:
