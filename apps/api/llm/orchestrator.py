@@ -40,6 +40,7 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
 
     answer: str
     followups: list[str]
+    ollama_error: str | None = None
 
     if settings.provider == "ollama" and sources:
         parts: list[str] = []
@@ -68,8 +69,9 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
                 yield format_sse("text", {"chunk": delta})
             answer = "".join(parts)
             followups = await _resolve_follow_ups(settings, request, sources, answer)
-        except Exception:
-            logger.exception("Ollama chat failed; using excerpt fallback")
+        except Exception as exc:
+            ollama_error = str(exc).strip()[:400]
+            logger.exception("Ollama chat failed; using excerpt fallback (%s)", ollama_error)
             answer = _compose_answer(
                 request.question, request.ticker, sources, answer_mode="ollama_unavailable"
             )
@@ -97,7 +99,10 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
         yield format_sse("chart", {"charts": [charts[0].model_dump(mode="json")]})
 
     append_chat_message(request.session_id, role="assistant", content=answer, follow_ups=followups)
-    yield format_sse("done", {"status": "complete"})
+    done: dict[str, object] = {"status": "complete"}
+    if ollama_error:
+        done["ollamaError"] = ollama_error
+    yield format_sse("done", done)
 
 
 def _filter_sources(sources: list[SourceResponse], filters: list[str]) -> list[SourceResponse]:

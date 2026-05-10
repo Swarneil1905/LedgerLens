@@ -11,7 +11,7 @@ export type ChatSseEvent =
   | { event: "sources"; data: { sources?: unknown[] } }
   | { event: "followups"; data: { followUps?: string[] } }
   | { event: "chart"; data: { charts?: unknown[] } }
-  | { event: "done"; data: Record<string, unknown> }
+  | { event: "done"; data: { status?: string; ollamaError?: string } & Record<string, unknown> }
   | { event: string; data: unknown };
 
 function parseSseBlock(block: string): ChatSseEvent | null {

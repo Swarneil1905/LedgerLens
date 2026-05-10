@@ -37,6 +37,8 @@ export function ChatSessionPanel({ sessionId, ticker, initialMessages }: ChatSes
   const [inputFocused, setInputFocused] = useState(false);
   /** From SSE `meta.answerStream` for this turn — never show ops/env details in the answer text. */
   const [turnAnswerStream, setTurnAnswerStream] = useState<"ollama" | "template" | null>(null);
+  /** Populated from SSE `done.ollamaError` when Ollama was attempted but failed mid-turn. */
+  const [ollamaFailureDetail, setOllamaFailureDetail] = useState<string | null>(null);
 
   const displayMessages = useMemo(() => {
     if (!streamingText) {
@@ -57,6 +59,7 @@ export function ChatSessionPanel({ sessionId, ticker, initialMessages }: ChatSes
       return;
     }
     setError(null);
+    setOllamaFailureDetail(null);
     setStreaming(true);
     setStreamingText("");
     setTurnAnswerStream(null);
@@ -130,6 +133,10 @@ export function ChatSessionPanel({ sessionId, ticker, initialMessages }: ChatSes
             setDrawer(sourcesPayload, chartPayload);
           }
         } else if (event.event === "done") {
+          const d = event.data as { ollamaError?: string };
+          if (d.ollamaError) {
+            setOllamaFailureDetail(d.ollamaError);
+          }
           break;
         }
       }
@@ -167,6 +174,13 @@ export function ChatSessionPanel({ sessionId, ticker, initialMessages }: ChatSes
         <p className="mb-3 text-xs leading-relaxed text-[var(--ll-text-tertiary)]">
           This reply uses <span className="font-medium text-[var(--ll-text-secondary)]">source highlights</span>{" "}
           only. Narrative answers stream when the writing assistant is connected and healthy.
+        </p>
+      ) : null}
+
+      {ollamaFailureDetail ? (
+        <p className="mb-3 text-xs leading-relaxed text-[var(--ll-text-tertiary)]">
+          Ollama could not complete this reply.{" "}
+          <span className="font-mono text-[11px] text-[var(--ll-text-secondary)]">{ollamaFailureDetail}</span>
         </p>
       ) : null}
 

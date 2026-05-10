@@ -19,8 +19,8 @@ async def stream_ollama_chat(
         # Grounded answers: lower temperature reduces decorative "outline" hallucinations.
         "options": {"temperature": 0.3, "top_p": 0.88, "num_predict": 1200},
     }
-    timeout = httpx.Timeout(120.0, connect=10.0, read=120.0)
-    async with httpx.AsyncClient(timeout=timeout) as client:
+    timeout = httpx.Timeout(120.0, connect=15.0, read=120.0)
+    async with httpx.AsyncClient(timeout=timeout, trust_env=False) as client:
         async with client.stream("POST", url, json=payload) as response:
             response.raise_for_status()
             async for line in response.aiter_lines():
@@ -64,8 +64,8 @@ async def complete_ollama_chat(
         "stream": False,
         "options": {"temperature": temperature, "top_p": 0.9, "num_predict": num_predict},
     }
-    timeout = httpx.Timeout(60.0, connect=10.0, read=60.0)
-    async with httpx.AsyncClient(timeout=timeout) as client:
+    timeout = httpx.Timeout(60.0, connect=15.0, read=60.0)
+    async with httpx.AsyncClient(timeout=timeout, trust_env=False) as client:
         response = await client.post(url, json=payload)
         response.raise_for_status()
         data: object = response.json()
