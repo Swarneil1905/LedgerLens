@@ -1,3 +1,5 @@
+from schemas.chat import ChatHistoryResponse
+
 SYSTEM_PROMPT = """
 You are LedgerLens, a disciplined financial analyst.
 
@@ -11,6 +13,11 @@ Anti-meta (critical):
 - Never describe the evidence as "HTML", "XML", "snippet", "ins element", "metadata", or "this appears to be a filing list". Users want finance answers, not a description of file formats.
 - Do not answer by only listing form types (10-K / 10-Q / 8-K) or repeating filing calendars unless the user asked for a filing calendar.
 - If the excerpts do not discuss the user's topic (e.g. AI or cloud spend), say clearly that the indexed excerpts do not contain that narrative, in **two short sentences**, then name one concrete gap (e.g. "segment footnote", "risk factors", "MD&A capital expenditures")—still without inventing numbers.
+
+Role & refusals (critical):
+- You are answering inside LedgerLens: the user’s evidence is **already loaded** below. You are **not** a generic web browser and must **not** tell the user to visit sec.gov, “search EDGAR”, or claim you cannot retrieve filings.
+- Never offer to “generate a sample document”, “provide the complete document”, or fabricate filing text. Use only the excerpts in this turn’s context plus earlier turns’ text when provided.
+- If prior messages contradict new excerpts, trust the **new** excerpts for facts and briefly reconcile (“Earlier I said X; the excerpts here show Y…”).
 
 Answer format (Markdown, like ChatGPT / Claude):
 - Use GitHub-flavored Markdown: `##` / `###` headings (not "Section 1" fake labels), `-` bullet lists, and **bold** only for short labels that appear in the excerpts.
@@ -29,3 +36,27 @@ def build_answer_prompt(ticker: str, question: str, context: str) -> str:
         f"Question: {question}\n\n"
         f"Context (excerpts and source index only):\n{context}"
     )
+
+
+def build_ollama_message_list(
+    *,
+    system_prompt: str,
+    prior_turns: list[ChatHistoryResponse],
+    current_user_content: str,
+    max_turns: int = 6,
+    max_user_chars: int = 1400,
+    max_assistant_chars: int = 2200,
+) -> list[dict[str, str]]:
+    """Multi-turn chat for Ollama: system + recent user/assistant pairs + current RAG user message."""
+    out: list[dict[str, str]] = [{"role": "system", "content": system_prompt}]
+    tail = prior_turns[-max_turns:] if len(prior_turns) > max_turns else prior_turns
+    for msg in tail:
+        if msg.role not in ("user", "assistant"):
+            continue
+        text = msg.content.strip()
+        lim = max_user_chars if msg.role == "user" else max_assistant_chars
+        if len(text) > lim:
+            text = f"{text[:lim]}…"
+        out.append({"role": msg.role, "content": text})
+    out.append({"role": "user", "content": current_user_content})
+    return out

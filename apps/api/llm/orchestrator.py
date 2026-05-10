@@ -11,9 +11,9 @@ from llm.followups import (
 )
 from llm.ollama import complete_ollama_chat, stream_ollama_chat
 from llm.context_cleanup import focus_excerpt_on_question, scrub_excerpt_text
-from llm.prompts import SYSTEM_PROMPT, build_answer_prompt
+from llm.prompts import SYSTEM_PROMPT, build_answer_prompt, build_ollama_message_list
 from llm.streaming import format_sse
-from memory.persistence import append_chat_message, list_workspace_charts
+from memory.persistence import append_chat_message, get_chat_history, list_workspace_charts
 from retrieval.assembler import RetrievedContext, assemble_context
 from schemas.chat import ChatQueryRequest
 from schemas.source import SourceResponse
@@ -22,8 +22,10 @@ logger = logging.getLogger(__name__)
 
 
 async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[str, None]:
+    prior_messages = get_chat_history(request.session_id)
     context = await assemble_context(request.question, request.ticker)
     sources = _filter_sources(context.sources, request.source_filters)
+    append_chat_message(request.session_id, role="user", content=request.question)
 
     settings = get_llm_settings()
     will_use_ollama = settings.provider == "ollama" and bool(sources)
@@ -34,8 +36,6 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
     if settings.provider == "ollama":
         meta_payload["ollamaModel"] = settings.ollama_model
     yield format_sse("meta", meta_payload)
-
-    append_chat_message(request.session_id, role="user", content=request.question)
 
     answer: str
     followups: list[str]
@@ -53,11 +53,15 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
             user_prompt = build_answer_prompt(
                 request.ticker, request.question, context_block
             )
+            ollama_messages = build_ollama_message_list(
+                system_prompt=SYSTEM_PROMPT.strip(),
+                prior_turns=prior_messages,
+                current_user_content=user_prompt,
+            )
             async for delta in stream_ollama_chat(
                 base_url=settings.ollama_base_url,
                 model=settings.ollama_model,
-                system_prompt=SYSTEM_PROMPT.strip(),
-                user_prompt=user_prompt,
+                messages=ollama_messages,
             ):
                 parts.append(delta)
                 yield format_sse("text", {"chunk": delta})

@@ -8,17 +8,13 @@ async def stream_ollama_chat(
     *,
     base_url: str,
     model: str,
-    system_prompt: str,
-    user_prompt: str,
+    messages: list[dict[str, str]],
 ) -> AsyncIterator[str]:
     """Yield assistant text deltas from Ollama's ``/api/chat`` streaming endpoint."""
     url = f"{base_url}/api/chat"
     payload: dict[str, object] = {
         "model": model,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
+        "messages": messages,
         "stream": True,
         # Grounded answers: lower temperature reduces decorative "outline" hallucinations.
         "options": {"temperature": 0.3, "top_p": 0.88, "num_predict": 1200},
