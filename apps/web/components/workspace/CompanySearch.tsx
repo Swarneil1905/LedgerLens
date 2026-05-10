@@ -31,16 +31,21 @@ export function CompanySearch() {
         `${getApiBaseUrl()}/companies/search?q=${encodeURIComponent(value.trim())}`
       );
       if (!response.ok) {
-        throw new Error("Search failed");
+        const base = getApiBaseUrl();
+        setError(
+          `API returned ${response.status} ${response.statusText || ""} for ${base}/companies/search. Open Railway **api** deployment logs; common causes: crash on boot, DB connection failure, or the process not listening on Railway’s **PORT**.`
+        );
+        setResults([]);
+        return;
       }
       const raw = (await response.json()) as unknown[];
       setResults(raw.map((row) => mapCompany(row as Record<string, unknown>)));
-    } catch {
+    } catch (err) {
       const base = getApiBaseUrl();
       const hint =
         base.includes("localhost") || base.includes("127.0.0.1")
           ? `The app is using ${base} (default). On Railway, set NEXT_PUBLIC_API_BASE_URL on the **web** service to your public API URL (https://…), then redeploy web.`
-          : `Could not reach the API at ${base}. Check the API service is up, ALLOWED_ORIGINS includes this site’s URL, and CORS.`;
+          : `Network error talking to ${base} (${err instanceof Error ? err.message : "unknown"}). If the API is up, check **ALLOWED_ORIGINS** on the **api** service matches this page’s origin exactly (scheme + host, no path), then redeploy **api**.`;
       setError(`Unable to reach the LedgerLens API. ${hint}`);
       setResults([]);
     } finally {
