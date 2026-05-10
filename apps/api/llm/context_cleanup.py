@@ -41,6 +41,13 @@ def scrub_excerpt_text(text: str) -> str:
         t,
         flags=re.I,
     )
+    # Ticker-prefixed iXBRL (e.g. goog:SeniorNotesDue2028Member) — not covered by us-gaap:
+    t = re.sub(
+        r"\b(?!https?)([a-z]{3,8}):[A-Za-z][A-Za-z0-9_.]{2,}\b",
+        " ",
+        t,
+        flags=re.I,
+    )
     t = re.sub(r"\biso4217:[A-Za-z0-9]+\b", " ", t, flags=re.I)
     # Long runs of zero-padded 10-digit SEC identifiers (context tables), not prose
     t = re.sub(r"(?:\b0\d{9}\b\s*){4,}", " ", t)

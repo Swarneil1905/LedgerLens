@@ -186,6 +186,7 @@ def _compose_answer(question: str, ticker: str, sources: list[SourceResponse]) -
     lines: list[str] = []
     for idx, source in enumerate(sources[:5], start=1):
         snip = scrub_excerpt_text(source.snippet.strip())
+        snip = focus_excerpt_on_question(snip, question, max_chars=_TEMPLATE_SNIPPET_CHARS)
         if len(snip) > _TEMPLATE_SNIPPET_CHARS:
             snip = f"{snip[:_TEMPLATE_SNIPPET_CHARS]}…"
         lines.append(
@@ -195,7 +196,12 @@ def _compose_answer(question: str, ticker: str, sources: list[SourceResponse]) -
     return (
         f"## {ticker}\n\n"
         f"*{question.strip()}*\n\n"
-        "This deployment is answering in **template mode** (no LLM): excerpts only. "
-        "Set **`LLM_PROVIDER=ollama`** and a reachable **`OLLAMA_*`** on the API host for synthesized answers.\n\n"
-        + "\n".join(lines)
+        "This deployment is in **template mode** (no LLM): excerpt highlights only — not a full narrative like local Ollama.\n\n"
+        "### Indexed excerpts\n\n"
+        + "\n\n".join(lines)
+        + "\n\n---\n\n"
+        "**For localhost-style answers on Railway:** set on the **api** service: `LLM_PROVIDER=ollama`, "
+        "`OLLAMA_BASE_URL` (URL your api container can reach — e.g. a private **Ollama** Railway service "
+        "at `http://ollama.railway.internal:11434` or your tunnel), and `OLLAMA_MODEL` (same model name "
+        "you use locally, e.g. `llama3.2:3b`). Redeploy **api** after saving variables."
     )
