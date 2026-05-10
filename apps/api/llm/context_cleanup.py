@@ -46,6 +46,9 @@ def scrub_excerpt_text(text: str) -> str:
     t = re.sub(r"(?:\b0\d{9}\b\s*){4,}", " ", t)
     # iXBRL file name prefixes sometimes leak as bare tokens (e.g. meta-20260331)
     t = re.sub(r"\bmeta-\d{8}\b", " ", t, flags=re.I)
+    # Taxonomy / registry URLs and other long tokens common in iXBRL dumps
+    t = re.sub(r"https?://[^\s]+", " ", t)
+    t = re.sub(r"\b[a-z]{2,10}-\d{8}\b", " ", t, flags=re.I)
     t = re.sub(r"\s+", " ", t).strip()
     return t
 

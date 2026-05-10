@@ -188,11 +188,14 @@ def _compose_answer(question: str, ticker: str, sources: list[SourceResponse]) -
         snip = scrub_excerpt_text(source.snippet.strip())
         if len(snip) > _TEMPLATE_SNIPPET_CHARS:
             snip = f"{snip[:_TEMPLATE_SNIPPET_CHARS]}…"
-        lines.append(f"[{idx}] {source.provider} ({source.source_type.value}): {snip}")
+        lines.append(
+            f"- **[{idx}]** {source.provider} ({source.source_type.value}): {snip}"
+        )
 
     return (
-        f"For {ticker}, addressing: {question.strip()}. "
-        f"The indexed evidence spans filings, macro, and news where available. "
-        f"{' '.join(lines)} "
-        "Synthesis stays inside the supplied snippets; where the corpus is thin, widen ingestion before drawing firm conclusions."
+        f"## {ticker}\n\n"
+        f"*{question.strip()}*\n\n"
+        "This deployment is answering in **template mode** (no LLM): excerpts only. "
+        "Set **`LLM_PROVIDER=ollama`** and a reachable **`OLLAMA_*`** on the API host for synthesized answers.\n\n"
+        + "\n".join(lines)
     )
