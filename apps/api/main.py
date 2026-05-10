@@ -1,6 +1,7 @@
+import asyncio
 import logging
 import os
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,7 +23,25 @@ async def lifespan(_: FastAPI):
             logger.info("ledgerlens: postgres schema ready")
         except Exception:
             logger.exception("ledgerlens: postgres schema init failed; API will keep running without DB tables")
+
+    async def _warm_company_index() -> None:
+        """Preload SEC ticker index so first browser search does not hit Railway proxy timeouts."""
+        try:
+            from memory.sec_company_index import load_company_index
+
+            await load_company_index()
+            logger.info("ledgerlens: SEC company index preload finished")
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("ledgerlens: SEC company index preload failed")
+
+    warm_task = asyncio.create_task(_warm_company_index())
     yield
+    if not warm_task.done():
+        warm_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await warm_task
 
 
 def _cors_allow_origins() -> list[str]:

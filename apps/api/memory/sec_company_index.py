@@ -7,12 +7,14 @@ from typing import Final
 
 import httpx
 
-from data_sources.http_tools import default_timeout, sec_headers
+from data_sources.http_tools import sec_headers
 from schemas.workspace import CompanyResponse
 
 logger = logging.getLogger(__name__)
 
 _TICKER_JSON_URL: Final[str] = "https://www.sec.gov/files/company_tickers.json"
+# Tighter than generic SEC calls: large JSON; fail fast so proxies (e.g. Railway) do not 502 first requests.
+_TICKER_HTTP_TIMEOUT: Final[httpx.Timeout] = httpx.Timeout(25.0, connect=6.0, read=20.0)
 
 _index_lock = asyncio.Lock()
 _index: list[CompanyResponse] | None = None
@@ -74,7 +76,7 @@ async def load_company_index(*, force: bool = False) -> None:
             return
 
         try:
-            async with httpx.AsyncClient(timeout=default_timeout()) as client:
+            async with httpx.AsyncClient(timeout=_TICKER_HTTP_TIMEOUT) as client:
                 response = await client.get(_TICKER_JSON_URL, headers=sec_headers())
                 response.raise_for_status()
                 parsed = _parse_company_tickers_payload(response.json())
