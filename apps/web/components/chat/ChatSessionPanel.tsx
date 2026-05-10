@@ -35,6 +35,8 @@ export function ChatSessionPanel({ sessionId, ticker, initialMessages }: ChatSes
   const [isStreaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [inputFocused, setInputFocused] = useState(false);
+  /** From SSE `meta.answerStream` for this turn — never show ops/env details in the answer text. */
+  const [turnAnswerStream, setTurnAnswerStream] = useState<"ollama" | "template" | null>(null);
 
   const displayMessages = useMemo(() => {
     if (!streamingText) {
@@ -57,6 +59,7 @@ export function ChatSessionPanel({ sessionId, ticker, initialMessages }: ChatSes
     setError(null);
     setStreaming(true);
     setStreamingText("");
+    setTurnAnswerStream(null);
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -88,7 +91,14 @@ export function ChatSessionPanel({ sessionId, ticker, initialMessages }: ChatSes
       }
 
       for await (const event of readChatSseStream(response.body)) {
-        if (event.event === "text") {
+        if (event.event === "meta") {
+          const d = event.data as { answerStream?: string };
+          if (d.answerStream === "template") {
+            setTurnAnswerStream("template");
+          } else if (d.answerStream === "ollama") {
+            setTurnAnswerStream("ollama");
+          }
+        } else if (event.event === "text") {
           const chunk =
             typeof event.data === "object" && event.data && "chunk" in event.data
               ? String((event.data as { chunk?: string }).chunk ?? "")
@@ -152,6 +162,13 @@ export function ChatSessionPanel({ sessionId, ticker, initialMessages }: ChatSes
         isStreaming={isStreaming}
         onFollowUp={(text) => setDraft(text)}
       />
+
+      {turnAnswerStream === "template" ? (
+        <p className="mb-3 text-xs leading-relaxed text-[var(--ll-text-tertiary)]">
+          This reply uses <span className="font-medium text-[var(--ll-text-secondary)]">source highlights</span>{" "}
+          only. Narrative answers stream when the writing assistant is connected and healthy.
+        </p>
+      ) : null}
 
       {error ? (
         <div className="mt-4 rounded-[var(--ll-radius-md)] border border-[var(--ll-border-default)] bg-[var(--ll-bg-surface)] px-4 py-3.5 text-sm text-[var(--ll-negative)]">

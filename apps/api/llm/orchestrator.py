@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from collections.abc import AsyncGenerator
+from typing import Literal
 
 from llm.config import get_llm_settings
 from llm.followups import (
@@ -68,14 +69,21 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
             answer = "".join(parts)
             followups = await _resolve_follow_ups(settings, request, sources, answer)
         except Exception:
-            logger.exception("Ollama chat failed; using template answer")
-            answer = _compose_answer(request.question, request.ticker, sources)
+            logger.exception("Ollama chat failed; using excerpt fallback")
+            answer = _compose_answer(
+                request.question, request.ticker, sources, answer_mode="ollama_unavailable"
+            )
             for token in answer.split(" "):
                 yield format_sse("text", {"chunk": f"{token} "})
                 await asyncio.sleep(0.008)
             followups = await _resolve_follow_ups(settings, request, sources, answer)
     else:
-        answer = _compose_answer(request.question, request.ticker, sources)
+        answer = _compose_answer(
+            request.question,
+            request.ticker,
+            sources,
+            answer_mode="excerpts_only",
+        )
         for token in answer.split(" "):
             yield format_sse("text", {"chunk": f"{token} "})
             await asyncio.sleep(0.008)
@@ -175,8 +183,16 @@ def _format_rag_context(context: RetrievedContext, question: str) -> str:
 
 _TEMPLATE_SNIPPET_CHARS = 1400
 
+_ComposeMode = Literal["excerpts_only", "ollama_unavailable"]
 
-def _compose_answer(question: str, ticker: str, sources: list[SourceResponse]) -> str:
+
+def _compose_answer(
+    question: str,
+    ticker: str,
+    sources: list[SourceResponse],
+    *,
+    answer_mode: _ComposeMode = "excerpts_only",
+) -> str:
     if not sources:
         return (
             f"No indexed sources were available for {ticker}. "
@@ -193,15 +209,21 @@ def _compose_answer(question: str, ticker: str, sources: list[SourceResponse]) -
             f"- **[{idx}]** {source.provider} ({source.source_type.value}): {snip}"
         )
 
+    if answer_mode == "ollama_unavailable":
+        intro = (
+            "The assistant could not finish a reply just now, so here are **short highlights** "
+            "from the indexed sources instead. If this keeps happening, try again in a minute."
+        )
+    else:
+        intro = (
+            "Here are **short highlights** from the indexed filings and data for this question. "
+            "A full narrative summary appears when an assistant is connected to this deployment."
+        )
+
     return (
         f"## {ticker}\n\n"
         f"*{question.strip()}*\n\n"
-        "This deployment is in **template mode** (no LLM): excerpt highlights only — not a full narrative like local Ollama.\n\n"
-        "### Indexed excerpts\n\n"
+        f"{intro}\n\n"
+        "### Source highlights\n\n"
         + "\n\n".join(lines)
-        + "\n\n---\n\n"
-        "**For localhost-style answers on Railway:** set on the **api** service: `LLM_PROVIDER=ollama`, "
-        "`OLLAMA_BASE_URL` (URL your api container can reach — e.g. a private **Ollama** Railway service "
-        "at `http://ollama.railway.internal:11434` or your tunnel), and `OLLAMA_MODEL` (same model name "
-        "you use locally, e.g. `llama3.2:3b`). Redeploy **api** after saving variables."
     )
