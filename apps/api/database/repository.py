@@ -23,7 +23,7 @@ def replace_sources_for_ticker(ticker: str, sources: list[SourceResponse]) -> No
         body = f"{s.title.strip()}. {s.snippet.strip()}".strip()
         if not body:
             continue
-        chunks.append((str(uuid4()), s.id, upper, body[:8000]))
+        chunks.append((str(uuid4()), s.id, upper, body[:48000]))
 
     with factory() as session:
         session.execute(delete(SourceChunkRow).where(SourceChunkRow.ticker == upper))
@@ -55,26 +55,70 @@ def _fts_safe_query(raw: str) -> str:
     return " ".join(words) if words else "earnings"
 
 
-def search_chunks(query: str, ticker: str, limit: int = 8) -> list[str]:
+def search_chunks(
+    query: str,
+    ticker: str,
+    limit: int = 8,
+    *,
+    prefer_periodic_filings: bool = False,
+) -> list[str]:
     if not is_database_configured():
         return []
     upper = ticker.upper()
     q = _fts_safe_query(query)
+    prefer_flag = 1 if prefer_periodic_filings else 0
     factory = get_session_factory()
     stmt = text(
         """
-        SELECT content
-        FROM ll_source_chunks
-        WHERE ticker = :ticker
-          AND to_tsvector('english', content) @@ plainto_tsquery('english', :q)
-        ORDER BY ts_rank(to_tsvector('english', content), plainto_tsquery('english', :q)) DESC
+        SELECT c.content
+        FROM ll_source_chunks c
+        INNER JOIN ll_sources s ON s.id = c.source_id AND s.ticker = c.ticker
+        WHERE c.ticker = :ticker
+          AND to_tsvector('english', c.content) @@ plainto_tsquery('english', :q)
+        ORDER BY
+          CASE
+            WHEN :prefer = 1
+              AND COALESCE(s.payload->'metadata'->>'form_type', '') = '10-Q'
+            THEN 0
+            WHEN :prefer = 1
+              AND COALESCE(s.payload->'metadata'->>'form_type', '') = '10-K'
+            THEN 1
+            ELSE 2
+          END,
+          ts_rank(
+            to_tsvector('english', c.content),
+            plainto_tsquery('english', :q)
+          ) DESC
         LIMIT :lim
         """
     )
     try:
         with factory() as session:
-            result = session.execute(stmt, {"ticker": upper, "q": q, "lim": limit})
-            return [row[0] for row in result.fetchall()]
+            result = session.execute(
+                stmt, {"ticker": upper, "q": q, "lim": limit, "prefer": prefer_flag}
+            )
+            rows = [row[0] for row in result.fetchall()]
+            if rows:
+                return rows
+            fallback = text(
+                """
+                SELECT c.content
+                FROM ll_source_chunks c
+                INNER JOIN ll_sources s ON s.id = c.source_id AND s.ticker = c.ticker
+                WHERE c.ticker = :ticker
+                ORDER BY
+                  CASE COALESCE(s.payload->'metadata'->>'form_type', '')
+                    WHEN '10-Q' THEN 1
+                    WHEN '10-K' THEN 2
+                    WHEN '8-K' THEN 3
+                    ELSE 4
+                  END,
+                  c.id DESC
+                LIMIT :lim
+                """
+            )
+            result_fb = session.execute(fallback, {"ticker": upper, "lim": limit})
+            return [row[0] for row in result_fb.fetchall()]
     except Exception:
         logger.warning("chunk FTS query failed", exc_info=True)
         return []

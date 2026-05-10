@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from pydantic import BaseModel
 
 from memory.persistence import get_company_sources
-from retrieval.query import expand_query
+from retrieval.query import expand_query, question_prefers_periodic_filings
 from retrieval.reranker import rerank_chunks
 from retrieval.vector_store import search_similar_chunks
 from schemas.source import SourceResponse, SourceType
@@ -17,7 +17,11 @@ class RetrievedContext(BaseModel):
 
 async def assemble_context(question: str, ticker: str) -> RetrievedContext:
     expansions = expand_query(question)
-    retrieved = search_similar_chunks(" ".join(expansions), ticker)
+    retrieved = search_similar_chunks(
+        " ".join(expansions),
+        ticker,
+        prefer_periodic_filings=question_prefers_periodic_filings(question),
+    )
     reranked = rerank_chunks(retrieved)
     catalog = get_company_sources(ticker)
     merged_sources = _merge_sources(catalog, reranked, ticker)

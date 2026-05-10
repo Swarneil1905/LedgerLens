@@ -20,6 +20,8 @@ async def stream_ollama_chat(
             {"role": "user", "content": user_prompt},
         ],
         "stream": True,
+        # Grounded answers: lower temperature reduces decorative "outline" hallucinations.
+        "options": {"temperature": 0.3, "top_p": 0.88, "num_predict": 1200},
     }
     timeout = httpx.Timeout(120.0, connect=10.0, read=120.0)
     async with httpx.AsyncClient(timeout=timeout) as client:
@@ -44,3 +46,37 @@ async def stream_ollama_chat(
                 content = message.get("content")
                 if isinstance(content, str) and content:
                     yield content
+
+
+async def complete_ollama_chat(
+    *,
+    base_url: str,
+    model: str,
+    system_prompt: str,
+    user_prompt: str,
+    temperature: float = 0.45,
+    num_predict: int = 320,
+) -> str:
+    """Single non-streaming completion (e.g. structured follow-up suggestions)."""
+    url = f"{base_url}/api/chat"
+    payload: dict[str, object] = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        "stream": False,
+        "options": {"temperature": temperature, "top_p": 0.9, "num_predict": num_predict},
+    }
+    timeout = httpx.Timeout(60.0, connect=10.0, read=60.0)
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        response = await client.post(url, json=payload)
+        response.raise_for_status()
+        data: object = response.json()
+    if not isinstance(data, dict):
+        return ""
+    message = data.get("message")
+    if not isinstance(message, dict):
+        return ""
+    content = message.get("content")
+    return content.strip() if isinstance(content, str) else ""

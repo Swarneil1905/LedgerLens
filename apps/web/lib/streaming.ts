@@ -1,4 +1,12 @@
 export type ChatSseEvent =
+  | {
+      event: "meta";
+      data: {
+        envLlmProvider?: string;
+        answerStream?: string;
+        ollamaModel?: string | null;
+      };
+    }
   | { event: "text"; data: { chunk?: string } }
   | { event: "sources"; data: { sources?: unknown[] } }
   | { event: "followups"; data: { followUps?: string[] } }

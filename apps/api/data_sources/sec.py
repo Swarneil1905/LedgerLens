@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import logging
+import re
 from datetime import datetime, timezone
 
 import httpx
@@ -13,7 +15,44 @@ logger = logging.getLogger(__name__)
 _TICKER_JSON_URL = "https://www.sec.gov/files/company_tickers.json"
 _SUBMISSIONS_TMPL = "https://data.sec.gov/submissions/CIK{cik}.json"
 _MAX_FILINGS = 5
+_MAX_EXCERPT_FETCHES = 3
+_EXCERPT_CHARS = 24000
 _TARGET_FORMS = {"10-K", "10-Q", "8-K"}
+# Prefer periodic reports (10-Q before 10-K) so quarterly questions get quarterly text first.
+_FORM_RANK = {"10-Q": 0, "10-K": 1, "8-K": 2}
+
+
+def _html_to_plain(html: str) -> str:
+    html = re.sub(r"(?is)<script[^>]*>.*?</script>", " ", html)
+    html = re.sub(r"(?is)<style[^>]*>.*?</style>", " ", html)
+    html = re.sub(r"(?s)<!--.*?-->", " ", html)
+    html = re.sub(r"<[^>]+>", " ", html)
+    return re.sub(r"\s+", " ", html).strip()
+
+
+def _archives_url(cik: int, accession: str, primary_document: str) -> str:
+    acc_nodash = accession.replace("-", "")
+    arch_cik = str(int(cik))
+    return f"https://www.sec.gov/Archives/edgar/data/{arch_cik}/{acc_nodash}/{primary_document}"
+
+
+async def _fetch_filing_excerpt(
+    client: httpx.AsyncClient, cik: int, accession: str, primary_document: str
+) -> str:
+    if not primary_document.strip():
+        return ""
+    url = _archives_url(cik, accession, primary_document)
+    try:
+        r = await client.get(url, headers=sec_headers())
+        r.raise_for_status()
+        raw = r.text
+        ct = (r.headers.get("content-type") or "").lower()
+        if "html" in ct or primary_document.lower().endswith((".htm", ".html")):
+            return _html_to_plain(raw)[:_EXCERPT_CHARS]
+        return raw.strip()[:_EXCERPT_CHARS]
+    except Exception:
+        logger.warning("SEC: excerpt fetch failed for %s", url, exc_info=True)
+        return ""
 
 
 async def fetch_filings(client: httpx.AsyncClient, ticker: str) -> list[SourceResponse]:
@@ -35,40 +74,67 @@ async def fetch_filings(client: httpx.AsyncClient, ticker: str) -> list[SourceRe
         docs = recent.get("primaryDocument") or []
         titles = recent.get("primaryDocDescription") or []
 
-        out: list[SourceResponse] = []
-        for i in range(min(len(forms), len(dates), len(accessions))):
-            if len(out) >= _MAX_FILINGS:
-                break
+        rows: list[tuple[int, str, str, str, str, str]] = []
+        scan = min(len(forms), len(dates), len(accessions), 80)
+        for i in range(scan):
             form = forms[i]
             if form not in _TARGET_FORMS:
                 continue
             accession = accessions[i]
             doc = docs[i] if i < len(docs) else ""
             desc = titles[i] if i < len(titles) else form
-            filing_date = _parse_date(dates[i])
+            rows.append((i, str(form), str(dates[i]), str(accession), str(doc), str(desc)))
+
+        rows.sort(key=lambda row: (_FORM_RANK.get(row[1], 9), row[0]))
+        picked = rows[:_MAX_FILINGS]
+
+        out: list[SourceResponse] = []
+        for i, form, date_s, accession, doc, desc in picked:
+            filing_date = _parse_date(date_s)
             viewer = (
                 f"https://www.sec.gov/cgi-bin/viewer?action=view&cik={cik_padded}"
                 f"&accession_number={accession}&xbrl_type=v"
             )
-            snippet = (desc or form)[:280]
+            snippet = (desc or form)[:500]
             out.append(
                 SourceResponse(
                     id=f"sec-{accession.replace('-', '')}-{form}",
                     source_type=SourceType.FILING,
-                    title=f"{upper} {form} ({dates[i]})",
+                    title=f"{upper} {form} ({date_s})",
                     provider="SEC EDGAR",
                     date=filing_date,
                     url=viewer,
                     ticker=upper,
                     snippet=snippet,
                     metadata={
-                        "form_type": str(form),
-                        "accession_number": str(accession),
-                        "primary_document": str(doc) if doc else "",
+                        "form_type": form,
+                        "accession_number": accession,
+                        "primary_document": doc,
                     },
                 )
             )
-        return out
+
+        fetches = 0
+        enriched: list[SourceResponse] = []
+        for src in out:
+            form = str(src.metadata.get("form_type") or "")
+            if form not in ("10-K", "10-Q") or fetches >= _MAX_EXCERPT_FETCHES:
+                enriched.append(src)
+                continue
+            acc = str(src.metadata.get("accession_number") or "")
+            doc = str(src.metadata.get("primary_document") or "")
+            if not acc or not doc:
+                enriched.append(src)
+                continue
+            body = await _fetch_filing_excerpt(client, cik, acc, doc)
+            fetches += 1
+            if body:
+                enriched.append(src.model_copy(update={"snippet": body[:45000]}))
+            else:
+                enriched.append(src)
+            await asyncio.sleep(0.35)
+
+        return enriched
     except httpx.HTTPError as exc:
         logger.warning("SEC filings fetch failed for %s: %s", upper, exc)
         return []

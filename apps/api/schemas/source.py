@@ -19,7 +19,8 @@ class SourceResponse(BaseModel):
     date: datetime
     url: str | None
     ticker: str | None
-    snippet: str = Field(max_length=300)
+    # Large enough for indexed filing excerpts (SEC 10-Q/10-K); news/macro stay short at source.
+    snippet: str = Field(max_length=50000)
     metadata: dict[str, str | int | float | bool | None]
 
 

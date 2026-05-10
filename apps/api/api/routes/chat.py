@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
+from llm.config import get_llm_settings
 from llm.orchestrator import generate_grounded_answer
 from memory.persistence import get_chat_history
 from schemas.chat import ChatHistoryResponse, ChatQueryRequest
@@ -10,10 +11,17 @@ router = APIRouter()
 
 @router.post("/query")
 async def query_chat(request: ChatQueryRequest) -> StreamingResponse:
+    llm = get_llm_settings()
+    headers: dict[str, str] = {
+        "X-Accel-Buffering": "no",
+        "X-LedgerLens-LLM-Provider": llm.provider,
+    }
+    if llm.provider == "ollama":
+        headers["X-LedgerLens-Ollama-Model"] = llm.ollama_model
     return StreamingResponse(
         generate_grounded_answer(request),
         media_type="text/event-stream",
-        headers={"X-Accel-Buffering": "no"},
+        headers=headers,
     )
 
 
