@@ -169,6 +169,9 @@ def _format_rag_context(context: RetrievedContext, question: str) -> str:
     return "\n\n".join(parts) if parts else "(No context available.)"
 
 
+_TEMPLATE_SNIPPET_CHARS = 1400
+
+
 def _compose_answer(question: str, ticker: str, sources: list[SourceResponse]) -> str:
     if not sources:
         return (
@@ -178,7 +181,10 @@ def _compose_answer(question: str, ticker: str, sources: list[SourceResponse]) -
 
     lines: list[str] = []
     for idx, source in enumerate(sources[:5], start=1):
-        lines.append(f"[{idx}] {source.provider} ({source.source_type.value}): {source.snippet.strip()}")
+        snip = scrub_excerpt_text(source.snippet.strip())
+        if len(snip) > _TEMPLATE_SNIPPET_CHARS:
+            snip = f"{snip[:_TEMPLATE_SNIPPET_CHARS]}…"
+        lines.append(f"[{idx}] {source.provider} ({source.source_type.value}): {snip}")
 
     return (
         f"For {ticker}, addressing: {question.strip()}. "

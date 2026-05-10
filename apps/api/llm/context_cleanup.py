@@ -27,13 +27,25 @@ def _keywords_from_question(question: str, limit: int = 10) -> list[str]:
 
 
 def scrub_excerpt_text(text: str) -> str:
-    """Strip residual markup entities and noisy tokens common in EDGAR HTML dumps."""
+    """Strip residual markup entities and noisy tokens common in EDGAR HTML / iXBRL dumps."""
     t = html_module.unescape(text)
     t = re.sub(r"(?i)<\?xml[^>]*\?>", " ", t)
     t = re.sub(r"(?is)<(script|style)[^>]*>.*?</\1>", " ", t)
     t = re.sub(r"(?s)<!--.*?-->", " ", t)
     t = re.sub(r"<[^>]+>", " ", t)
     t = re.sub(r"(?i)\b(ins|xbrl|ixbrl|linkbase|schema)\s+element\b", " ", t)
+    # Inline XBRL QName / taxonomy tokens that survive tag stripping ("dimension soup")
+    t = re.sub(
+        r"\b(?:us-gaap|meta|xbrli|srt|dei|ecd|ix|country|currency|stpr|exch):[A-Za-z0-9_.]+\b",
+        " ",
+        t,
+        flags=re.I,
+    )
+    t = re.sub(r"\biso4217:[A-Za-z0-9]+\b", " ", t, flags=re.I)
+    # Long runs of zero-padded 10-digit SEC identifiers (context tables), not prose
+    t = re.sub(r"(?:\b0\d{9}\b\s*){4,}", " ", t)
+    # iXBRL file name prefixes sometimes leak as bare tokens (e.g. meta-20260331)
+    t = re.sub(r"\bmeta-\d{8}\b", " ", t, flags=re.I)
     t = re.sub(r"\s+", " ", t).strip()
     return t
 

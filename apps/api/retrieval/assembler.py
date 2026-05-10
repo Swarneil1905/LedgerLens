@@ -32,9 +32,11 @@ async def assemble_context(question: str, ticker: str) -> RetrievedContext:
 def _merge_sources(catalog: list[SourceResponse], chunks: list[str], ticker: str) -> list[SourceResponse]:
     if catalog:
         return catalog[:8]
-    fallback_snippet = (
-        chunks[0] if chunks else f"No indexed sources yet for {ticker}. Run POST /sources/refresh."
-    )[:300]
+    # No catalog rows: only surface a synthetic "source" when we actually have chunk text.
+    # Otherwise return [] so the UI does not show "1 sources linked" for an empty index (e.g. JPM never refreshed).
+    if not chunks:
+        return []
+    fallback_snippet = chunks[0][:300]
     return [
         SourceResponse(
             id=f"{ticker.lower()}-fallback",
