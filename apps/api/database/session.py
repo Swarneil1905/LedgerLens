@@ -17,7 +17,12 @@ def get_engine() -> Engine:
     if not url:
         raise RuntimeError("DATABASE_URL is not set")
     if _engine is None:
-        _engine = create_engine(url, pool_pre_ping=True)
+        # connect_timeout avoids hanging forever on bad DB URLs (Railway health checks time out).
+        _engine = create_engine(
+            url,
+            pool_pre_ping=True,
+            connect_args={"connect_timeout": 10},
+        )
         _SessionLocal = sessionmaker(bind=_engine, autoflush=False, autocommit=False, expire_on_commit=False)
     return _engine
 

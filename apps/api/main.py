@@ -39,6 +39,14 @@ def _cors_allow_origins() -> list[str]:
 
 
 app = FastAPI(title="LedgerLens API", version="1.0.0", lifespan=lifespan)
+
+
+@app.get("/")
+async def root_liveness() -> dict[str, str]:
+    """Fast probe for load balancers (no DB); use ``GET /health`` for DB status."""
+    return {"status": "ok", "service": "ledgerlens-api"}
+
+
 register_middleware(app)
 app.add_middleware(
     CORSMiddleware,

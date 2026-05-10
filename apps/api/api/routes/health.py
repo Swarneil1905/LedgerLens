@@ -1,7 +1,8 @@
 from fastapi import APIRouter
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 
 from database.config import database_url
+from database.session import get_engine
 
 router = APIRouter()
 
@@ -13,8 +14,7 @@ async def get_health() -> dict[str, object]:
     db_connected = False
     if url:
         try:
-            engine = create_engine(url, pool_pre_ping=True)
-            with engine.connect() as connection:
+            with get_engine().connect() as connection:
                 connection.execute(text("SELECT 1"))
             db_connected = True
         except Exception:
