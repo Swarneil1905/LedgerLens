@@ -7,6 +7,7 @@ from sqlalchemy import delete, select, text
 from database.config import is_database_configured
 from database.models import SourceChunkRow, SourceRow
 from database.session import get_session_factory
+from retrieval.chunk_split import index_slices_for_source
 from schemas.source import SourceResponse
 
 logger = logging.getLogger(__name__)
@@ -20,10 +21,8 @@ def replace_sources_for_ticker(ticker: str, sources: list[SourceResponse]) -> No
     payloads = [(s.id, upper, s.model_dump(mode="json")) for s in sources]
     chunks: list[tuple[str, str, str, str]] = []
     for s in sources:
-        body = f"{s.title.strip()}. {s.snippet.strip()}".strip()
-        if not body:
-            continue
-        chunks.append((str(uuid4()), s.id, upper, body[:48000]))
+        for slice_text in index_slices_for_source(s):
+            chunks.append((str(uuid4()), s.id, upper, slice_text))
 
     with factory() as session:
         session.execute(delete(SourceChunkRow).where(SourceChunkRow.ticker == upper))

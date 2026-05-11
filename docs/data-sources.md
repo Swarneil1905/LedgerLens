@@ -12,7 +12,8 @@
 ## Refresh and persistence
 
 - `POST /sources/refresh?ticker=` calls `gather_company_sources`, then `memory.persistence.replace_company_sources`.
-- When `DATABASE_URL` points at Postgres, sources are stored in `ll_sources` (JSON payload) and `ll_source_chunks` (title + snippet text for search).
+- When `DATABASE_URL` points at Postgres, sources are stored in `ll_sources` (JSON payload) and `ll_source_chunks` (search slices derived from title + snippet).
+- Large **10-Q / 10-K** excerpts are split into multiple overlapping chunk rows (same `source_id`) via `retrieval/chunk_split.py`, so full‑text search can surface paragraphs about prior‑period comparisons instead of one giant blob. Smaller filings and non‑periodic sources stay as a single chunk.
 - Chat retrieval uses Postgres `tsvector` / `plainto_tsquery` over `ll_source_chunks` when the DB is configured; otherwise the legacy placeholder path still runs.
 
 ## Operational expectations
