@@ -1,4 +1,4 @@
-def expand_query(question: str) -> list[str]:
+def expand_query(question: str, ticker: str = "") -> list[str]:
     base = [question, f"{question} risks", f"{question} catalysts"]
     lowered = question.lower()
     filing_hints = "10-K 10-Q quarterly MD&A revenue earnings risk factors"
@@ -19,6 +19,12 @@ def expand_query(question: str) -> list[str]:
         )
     ):
         base.append(f"{question} {filing_hints}")
+        base.append(
+            "quarter over quarter three months ended comparative prior period MD&A results operations"
+        )
+        tick = ticker.strip().upper()
+        if tick:
+            base.append(f"{tick} {filing_hints} comparative financial condition results operations")
     return base
 
 

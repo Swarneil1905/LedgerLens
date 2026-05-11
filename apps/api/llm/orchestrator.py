@@ -64,6 +64,10 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
                 base_url=settings.ollama_base_url,
                 model=settings.ollama_model,
                 messages=ollama_messages,
+                temperature=settings.ollama_chat_temperature,
+                top_p=settings.ollama_chat_top_p,
+                num_predict=settings.ollama_chat_num_predict,
+                num_ctx=settings.ollama_chat_num_ctx,
             ):
                 parts.append(delta)
                 yield format_sse("text", {"chunk": delta})

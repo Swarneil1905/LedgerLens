@@ -9,15 +9,25 @@ async def stream_ollama_chat(
     base_url: str,
     model: str,
     messages: list[dict[str, str]],
+    temperature: float = 0.3,
+    top_p: float = 0.88,
+    num_predict: int = 1200,
+    num_ctx: int | None = None,
 ) -> AsyncIterator[str]:
     """Yield assistant text deltas from Ollama's ``/api/chat`` streaming endpoint."""
     url = f"{base_url}/api/chat"
+    opts: dict[str, object] = {
+        "temperature": temperature,
+        "top_p": top_p,
+        "num_predict": num_predict,
+    }
+    if num_ctx is not None:
+        opts["num_ctx"] = num_ctx
     payload: dict[str, object] = {
         "model": model,
         "messages": messages,
         "stream": True,
-        # Grounded answers: lower temperature reduces decorative "outline" hallucinations.
-        "options": {"temperature": 0.3, "top_p": 0.88, "num_predict": 1200},
+        "options": opts,
     }
     timeout = httpx.Timeout(120.0, connect=15.0, read=120.0)
     async with httpx.AsyncClient(timeout=timeout, trust_env=False) as client:

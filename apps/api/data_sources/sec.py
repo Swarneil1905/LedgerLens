@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 _TICKER_JSON_URL = "https://www.sec.gov/files/company_tickers.json"
 _SUBMISSIONS_TMPL = "https://data.sec.gov/submissions/CIK{cik}.json"
 _MAX_FILINGS = 5
-_MAX_EXCERPT_FETCHES = 3
+_MAX_EXCERPT_FETCHES = 5
 _EXCERPT_CHARS = 24000
 _TARGET_FORMS = {"10-K", "10-Q", "8-K"}
 # Prefer periodic reports (10-Q before 10-K) so quarterly questions get quarterly text first.

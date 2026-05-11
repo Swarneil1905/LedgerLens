@@ -75,6 +75,10 @@ def search_chunks(
         INNER JOIN ll_sources s ON s.id = c.source_id AND s.ticker = c.ticker
         WHERE c.ticker = :ticker
           AND to_tsvector('english', c.content) @@ plainto_tsquery('english', :q)
+          AND (
+            :prefer <> 1
+            OR COALESCE(s.payload->'metadata'->>'form_type', '') IN ('10-Q', '10-K')
+          )
         ORDER BY
           CASE
             WHEN :prefer = 1
@@ -100,6 +104,7 @@ def search_chunks(
             rows = [row[0] for row in result.fetchall()]
             if rows:
                 return rows
+            # Broader fallback: keep ranking favoring 10-Q/10-K even when filing-specific FTS misses.
             fallback = text(
                 """
                 SELECT c.content

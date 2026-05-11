@@ -21,7 +21,7 @@ Copy `.env.example` to `apps/web/.env.local` for the frontend and export variabl
 - `NEXT_PUBLIC_API_BASE_URL`: FastAPI origin (default `http://localhost:8000`). You may also set `NEXT_PUBLIC_API_URL`; the web app accepts either.
 - Optional: `DATABASE_URL`: when set and reachable, `GET /health` reports `db_connected: true`.
 - For live macro on `POST /sources/refresh`, set **`FRED_API_KEY`** (see [FRED API keys](https://fred.stlouisfed.org/docs/api/api_key.html)) in the same environment as `uvicorn` (shell export, IDE run config, or container env). Optional **`FRED_SERIES_ID`** defaults to `FEDFUNDS`.
-- **LLM (Ollama):** defaults to excerpt-only **stub** mode. For synthesized chat like local dev, set **`LLM_PROVIDER=ollama`**, **`OLLAMA_BASE_URL`** (e.g. `http://127.0.0.1:11434` locally, or `http://<ollama-service>.railway.internal:11434` when both services run on Railway), and **`OLLAMA_MODEL`** (e.g. `llama3.2:3b`). The API container must be able to reach that URL over the network.
+- **LLM (Ollama):** defaults to excerpt-only **stub** mode. For synthesized chat like local dev, set **`LLM_PROVIDER=ollama`**, **`OLLAMA_BASE_URL`** (e.g. `http://127.0.0.1:11434` locally, or `http://<ollama-service>.railway.internal:11434` when both services run on Railway), and **`OLLAMA_MODEL`** (e.g. `llama3.2:3b`). The API container must be able to reach that URL over the network. Optional tuning: **`OLLAMA_CHAT_NUM_PREDICT`** (max new tokens, default `1200`), **`OLLAMA_CHAT_TEMPERATURE`**, **`OLLAMA_CHAT_TOP_P`**, **`OLLAMA_NUM_CTX`** (context window cap when set). For **LoRA / QLoRA** training (GPU, separate from the API), see `scripts/lora/README.md`.
 
 ## Run locally
 

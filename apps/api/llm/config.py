@@ -33,6 +33,29 @@ def normalize_ollama_base_url(raw: str) -> str:
     return urlunparse((scheme, netloc, "", "", "", "")).rstrip("/")
 
 
+def _env_float(name: str, default: float) -> float:
+    raw = os.getenv(name)
+    if raw is None or not str(raw).strip():
+        return default
+    return float(str(raw).strip())
+
+
+def _env_positive_int(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if raw is None or not str(raw).strip():
+        return default
+    v = int(str(raw).strip())
+    return v if v > 0 else default
+
+
+def _env_optional_positive_int(name: str) -> int | None:
+    raw = os.getenv(name)
+    if raw is None or not str(raw).strip():
+        return None
+    v = int(str(raw).strip())
+    return v if v > 0 else None
+
+
 @dataclass(frozen=True)
 class LlmSettings:
     """Runtime LLM behavior (env-driven; defaults keep current stub behavior)."""
@@ -40,6 +63,10 @@ class LlmSettings:
     provider: LlmProvider
     ollama_base_url: str
     ollama_model: str
+    ollama_chat_temperature: float
+    ollama_chat_top_p: float
+    ollama_chat_num_predict: int
+    ollama_chat_num_ctx: int | None
 
 
 def get_llm_settings() -> LlmSettings:
@@ -47,4 +74,12 @@ def get_llm_settings() -> LlmSettings:
     provider: LlmProvider = "ollama" if raw == "ollama" else "stub"
     base = normalize_ollama_base_url(os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434"))
     model = os.getenv("OLLAMA_MODEL", "llama3.2:3b").strip() or "llama3.2:3b"
-    return LlmSettings(provider=provider, ollama_base_url=base, ollama_model=model)
+    return LlmSettings(
+        provider=provider,
+        ollama_base_url=base,
+        ollama_model=model,
+        ollama_chat_temperature=_env_float("OLLAMA_CHAT_TEMPERATURE", 0.3),
+        ollama_chat_top_p=_env_float("OLLAMA_CHAT_TOP_P", 0.88),
+        ollama_chat_num_predict=_env_positive_int("OLLAMA_CHAT_NUM_PREDICT", 1200),
+        ollama_chat_num_ctx=_env_optional_positive_int("OLLAMA_NUM_CTX"),
+    )
