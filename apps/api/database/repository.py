@@ -18,9 +18,21 @@ def replace_sources_for_ticker(ticker: str, sources: list[SourceResponse]) -> No
         return
     upper = ticker.upper()
     factory = get_session_factory()
-    payloads = [(s.id, upper, s.model_dump(mode="json")) for s in sources]
-    chunks: list[tuple[str, str, str, str]] = []
+    deduped: list[SourceResponse] = []
+    seen_ids: set[str] = set()
     for s in sources:
+        if s.id in seen_ids:
+            logger.warning(
+                "Skipping duplicate source id %s for ticker %s (connector overlap)",
+                s.id,
+                upper,
+            )
+            continue
+        seen_ids.add(s.id)
+        deduped.append(s)
+    payloads = [(s.id, upper, s.model_dump(mode="json")) for s in deduped]
+    chunks: list[tuple[str, str, str, str]] = []
+    for s in deduped:
         for slice_text in index_slices_for_source(s):
             chunks.append((str(uuid4()), s.id, upper, slice_text))
 

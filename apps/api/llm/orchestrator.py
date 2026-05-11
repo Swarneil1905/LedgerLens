@@ -16,8 +16,9 @@ from llm.prompts import SYSTEM_PROMPT, build_answer_prompt, build_ollama_message
 from llm.streaming import format_sse
 from memory.persistence import append_chat_message, get_chat_history, list_workspace_charts
 from retrieval.assembler import RetrievedContext, assemble_context
+from retrieval.query import question_prefers_periodic_filings
 from schemas.chat import ChatQueryRequest
-from schemas.source import SourceResponse
+from schemas.source import SourceResponse, SourceType
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
     prior_messages = get_chat_history(request.session_id)
     context = await assemble_context(request.question, request.ticker)
     sources = _filter_sources(context.sources, request.source_filters)
+    periodic_filing_q = question_prefers_periodic_filings(request.question)
     append_chat_message(request.session_id, role="user", content=request.question)
 
     settings = get_llm_settings()
@@ -51,7 +53,12 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
                 settings.ollama_model,
                 request.ticker,
             )
-            context_block = _format_rag_context(context, request.question)
+            context_block = _format_rag_context(
+                context,
+                request.question,
+                sources_for_prompt=sources,
+                filings_only_for_index=periodic_filing_q,
+            )
             user_prompt = build_answer_prompt(
                 request.ticker, request.question, context_block
             )
@@ -166,18 +173,34 @@ def _source_title_lines(sources: list[SourceResponse]) -> list[str]:
     return [f"- {s.title} ({s.source_type.value})" for s in sources[:8]]
 
 
-def _format_rag_context(context: RetrievedContext, question: str) -> str:
+def _format_rag_context(
+    context: RetrievedContext,
+    question: str,
+    *,
+    sources_for_prompt: list[SourceResponse] | None = None,
+    filings_only_for_index: bool = False,
+) -> str:
+    """Build prompt context. For periodic filing questions, omit FRED/news from the numbered
+    Source index so small models do not default to “here are three kinds of sources.”
+    """
     parts: list[str] = []
-    chunks = list(context.chunks[:12])
-    if not chunks and context.sources:
-        chunks = _source_fallback_chunks(context.sources)
+    base_sources = sources_for_prompt if sources_for_prompt is not None else context.sources
+
+    chunks = list(context.chunks[:14])
+    if not chunks and base_sources:
+        chunks = _source_fallback_chunks(base_sources)
     if chunks:
         polished = [focus_excerpt_on_question(scrub_excerpt_text(c), question) for c in chunks]
         joined = "\n---\n".join(polished)
         parts.append(f"## Retrieved excerpts\n{joined}")
-    if context.sources:
+
+    if base_sources:
+        idx_sources = list(base_sources[:12])
+        if filings_only_for_index:
+            filing_rows = [s for s in idx_sources if s.source_type == SourceType.FILING]
+            idx_sources = filing_rows if filing_rows else idx_sources
         lines: list[str] = []
-        for idx, source in enumerate(context.sources[:8], start=1):
+        for idx, source in enumerate(idx_sources[:10], start=1):
             snippet = scrub_excerpt_text(source.snippet.strip())
             if len(snippet) > 8000:
                 snippet = focus_excerpt_on_question(snippet, question, max_chars=6000)
@@ -187,7 +210,16 @@ def _format_rag_context(context: RetrievedContext, question: str) -> str:
                 f"[{idx}] {source.provider} ({source.source_type.value}): {snippet}"
             )
         parts.append("## Source index\n" + "\n".join(lines))
-    return "\n\n".join(parts) if parts else "(No context available.)"
+
+    body = "\n\n".join(parts) if parts else "(No context available.)"
+    if filings_only_for_index and body != "(No context available.)":
+        body += (
+            "\n\n(Task for this turn: Answer the Question using the filing excerpts and "
+            "index lines above only. Do not summarize SEC vs FRED vs news as categories—give "
+            "substantive filing-grounded takeaways. If prior-period figures are missing from "
+            "the excerpts, say exactly what is missing in one sentence.)"
+        )
+    return body
 
 
 _TEMPLATE_SNIPPET_CHARS = 1400

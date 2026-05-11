@@ -60,8 +60,12 @@ async def fetch_series(
         except ValueError:
             obs_date = datetime.now(timezone.utc)
         snippet = f"Latest observation {date_raw}: {val} ({series_id})."
+        tick = (ticker or "").strip().upper() or "MACRO"
+        # IDs must be unique per ll_sources row: macro observations were keyed only by series+date,
+        # so indexing multiple tickers collided on PK (`fred-fedfunds-YYYY-MM-DD`).
+        macro_id = f"{tick}-fred-{series_id.lower()}-{date_raw}"
         return SourceResponse(
-            id=f"fred-{series_id.lower()}-{date_raw}",
+            id=macro_id,
             source_type=SourceType.MACRO,
             title=f"FRED {series_id}",
             provider="FRED",
