@@ -237,3 +237,79 @@ textarea {
     --angle: 360deg;
   }
 }
+
+@keyframes ll-ambient-drift {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    opacity: 0.88;
+    transform: translate3d(12px, 8px, 0) scale(1.04);
+  }
+}
+
+@keyframes ll-dot-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ll-stream-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@media (max-width: 767px) {
+  .ll-ambient-glow {
+    animation: ll-ambient-drift 22s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ll-ambient-glow {
+    animation: none;
+  }
+}
+
+.ll-streaming-shimmer {
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    oklch(0.72 0.17 200 / 0.06) 45%,
+    oklch(0.72 0.17 200 / 0.12) 50%,
+    oklch(0.72 0.17 200 / 0.06) 55%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: ll-stream-shimmer 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ll-streaming-shimmer {
+    animation: none;
+    background: oklch(0.72 0.17 200 / 0.04);
+  }
+}
+
+.ll-dot-pulse {
+  animation: ll-dot-pulse 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ll-dot-pulse {
+    animation: none;
+    opacity: 1;
+  }
+}

@@ -24,10 +24,10 @@ export function WorkspaceShell({
       />
 
       <div
-        className="pointer-events-none fixed left-0 top-0 z-0 h-[400px] w-[600px]"
+        className="ll-ambient-glow pointer-events-none fixed left-0 top-0 z-0 h-[400px] w-[min(600px,100vw)]"
         style={{
           background:
-            "radial-gradient(ellipse at top left, rgba(45,212,191,0.04) 0%, transparent 70%)"
+            "radial-gradient(ellipse at top left, rgba(45,212,191,0.06) 0%, transparent 72%)"
         }}
         aria-hidden
       />

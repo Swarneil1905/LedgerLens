@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from collections.abc import AsyncGenerator
+from dataclasses import dataclass
 from typing import Literal
 
 from llm.config import get_llm_settings
@@ -58,6 +59,7 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
                 request.question,
                 sources_for_prompt=sources,
                 filings_only_for_index=periodic_filing_q,
+                limits=OLLAMA_RAG_LIMITS,
             )
             user_prompt = build_answer_prompt(
                 request.ticker, request.question, context_block
@@ -109,7 +111,13 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
     if charts:
         yield format_sse("chart", {"charts": [charts[0].model_dump(mode="json")]})
 
-    append_chat_message(request.session_id, role="assistant", content=answer, follow_ups=followups)
+    append_chat_message(
+        request.session_id,
+        role="assistant",
+        content=answer,
+        follow_ups=followups,
+        sources=sources,
+    )
     done: dict[str, object] = {"status": "complete"}
     if ollama_error:
         done["ollamaError"] = ollama_error
@@ -173,12 +181,26 @@ def _source_title_lines(sources: list[SourceResponse]) -> list[str]:
     return [f"- {s.title} ({s.source_type.value})" for s in sources[:8]]
 
 
+@dataclass(frozen=True)
+class RagFormatLimits:
+    """Keeps Ollama prompts inside num_ctx: filing dumps were routinely >80k chars / index-only."""
+
+    max_chunks: int = 7
+    max_polished_chunk_chars: int = 2200
+    max_index_sources: int = 7
+    max_index_snippet_chars: int = 680
+
+
+OLLAMA_RAG_LIMITS = RagFormatLimits()
+
+
 def _format_rag_context(
     context: RetrievedContext,
     question: str,
     *,
     sources_for_prompt: list[SourceResponse] | None = None,
     filings_only_for_index: bool = False,
+    limits: RagFormatLimits = OLLAMA_RAG_LIMITS,
 ) -> str:
     """Build prompt context. For periodic filing questions, omit FRED/news from the numbered
     Source index so small models do not default to “here are three kinds of sources.”
@@ -186,26 +208,36 @@ def _format_rag_context(
     parts: list[str] = []
     base_sources = sources_for_prompt if sources_for_prompt is not None else context.sources
 
-    chunks = list(context.chunks[:14])
+    chunks = list(context.chunks[: limits.max_chunks])
     if not chunks and base_sources:
-        chunks = _source_fallback_chunks(base_sources)
+        chunks = _source_fallback_chunks(base_sources)[: limits.max_chunks]
     if chunks:
-        polished = [focus_excerpt_on_question(scrub_excerpt_text(c), question) for c in chunks]
+        polished: list[str] = []
+        for c in chunks:
+            raw_excerpt = scrub_excerpt_text(c)
+            excerpt = focus_excerpt_on_question(
+                raw_excerpt, question, max_chars=limits.max_polished_chunk_chars
+            )
+            if len(excerpt) > limits.max_polished_chunk_chars:
+                excerpt = f"{excerpt[: limits.max_polished_chunk_chars]}…"
+            polished.append(excerpt)
         joined = "\n---\n".join(polished)
         parts.append(f"## Retrieved excerpts\n{joined}")
 
     if base_sources:
-        idx_sources = list(base_sources[:12])
+        idx_sources = list(base_sources[: limits.max_index_sources])
         if filings_only_for_index:
             filing_rows = [s for s in idx_sources if s.source_type == SourceType.FILING]
             idx_sources = filing_rows if filing_rows else idx_sources
         lines: list[str] = []
-        for idx, source in enumerate(idx_sources[:10], start=1):
+        cap = min(limits.max_index_sources, 10)
+        for idx, source in enumerate(idx_sources[:cap], start=1):
             snippet = scrub_excerpt_text(source.snippet.strip())
-            if len(snippet) > 8000:
-                snippet = focus_excerpt_on_question(snippet, question, max_chars=6000)
-            elif len(snippet) > 6000:
-                snippet = f"{snippet[:6000]}…"
+            snippet = focus_excerpt_on_question(
+                snippet, question, max_chars=limits.max_index_snippet_chars
+            )
+            if len(snippet) > limits.max_index_snippet_chars:
+                snippet = f"{snippet[: limits.max_index_snippet_chars]}…"
             lines.append(
                 f"[{idx}] {source.provider} ({source.source_type.value}): {snippet}"
             )

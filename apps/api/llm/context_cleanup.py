@@ -51,6 +51,9 @@ def scrub_excerpt_text(text: str) -> str:
     t = re.sub(r"\biso4217:[A-Za-z0-9]+\b", " ", t, flags=re.I)
     # Long runs of zero-padded 10-digit SEC identifiers (context tables), not prose
     t = re.sub(r"(?:\b0\d{9}\b\s*){4,}", " ", t)
+    # Repeated ISO period stubs / CIK-like rows from dimension dumps (not readable prose)
+    t = re.sub(r"(?:\b\d{4}-\d{2}-\d{2}\b\s*){8,}", " [period dates omitted] ", t)
+    t = re.sub(r"(?:\b\d{10}\b\s*){8,}", " [identifiers omitted] ", t)
     # iXBRL file name prefixes sometimes leak as bare tokens (e.g. meta-20260331)
     t = re.sub(r"\bmeta-\d{8}\b", " ", t, flags=re.I)
     # Taxonomy / registry URLs and other long tokens common in iXBRL dumps

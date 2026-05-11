@@ -202,6 +202,7 @@ def append_chat_message(
     role: str,
     content: str,
     follow_ups: list[str] | None = None,
+    sources: list[SourceResponse] | None = None,
 ) -> ChatHistoryResponse:
     message = ChatHistoryResponse(
         id=str(uuid4()),
@@ -209,6 +210,7 @@ def append_chat_message(
         content=content,
         created_at=datetime.now(timezone.utc),
         follow_ups=follow_ups,
+        sources=(sources if role == "assistant" else None),
     )
     _session_messages.setdefault(session_id, []).append(message)
     return message

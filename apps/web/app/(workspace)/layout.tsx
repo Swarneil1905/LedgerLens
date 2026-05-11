@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { BrowserIssueHints } from "@/components/layout/BrowserIssueHints";
 import { WorkspaceShell } from "@/components/layout/WorkspaceShell";
 import { WorkspaceStateProvider } from "@/components/layout/WorkspaceStateProvider";
 import { apiGetJson } from "@/lib/api-client";
@@ -20,6 +21,7 @@ export default async function WorkspaceLayout({ children }: { children: ReactNod
   return (
     <WorkspaceStateProvider>
       <WorkspaceShell workspaceHref={workspaceHref}>{children}</WorkspaceShell>
+      <BrowserIssueHints />
     </WorkspaceStateProvider>
   );
 }

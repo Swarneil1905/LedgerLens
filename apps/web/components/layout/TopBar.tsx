@@ -15,7 +15,7 @@ export function TopBar() {
   const crumbs = breadcrumb && breadcrumb.length > 0 ? breadcrumb : null;
 
   return (
-    <div className="flex h-full items-center justify-between px-6">
+    <div className="flex h-full items-center justify-between gap-3 px-4 sm:px-6">
       {crumbs ? (
         <motion.div
           initial={{ opacity: 0, x: -10 }}
@@ -95,17 +95,20 @@ export function TopBar() {
 
 function TopBarButton({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   return (
-    <button
+    <motion.button
       type="button"
+      aria-label={label}
+      whileTap={{ scale: 0.96 }}
+      transition={{ type: "spring", stiffness: 520, damping: 28 }}
       className={cn(
-        "flex h-8 cursor-pointer items-center gap-1.5 rounded-[var(--ll-radius-md)] border border-[var(--ll-border-default)]",
-        "bg-[var(--ll-bg-elevated)] px-3 text-xs font-medium text-[var(--ll-text-secondary)]",
-        "outline-none transition-all duration-150 hover:border-[var(--ll-border-strong)] hover:bg-[var(--ll-bg-overlay)] hover:text-[var(--ll-text-primary)]",
-        "active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[var(--ll-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ll-bg-base)]"
+        "flex h-9 cursor-pointer items-center gap-1.5 rounded-[var(--ll-radius-lg)] border border-[var(--ll-border-default)]",
+        "bg-[var(--ll-bg-elevated)] px-2.5 text-xs font-medium text-[var(--ll-text-secondary)] sm:h-8 sm:rounded-[var(--ll-radius-md)] sm:px-3",
+        "outline-none transition-[border-color,background-color,color,box-shadow] duration-200 hover:border-[var(--ll-accent-border)] hover:bg-[var(--ll-bg-overlay)] hover:text-[var(--ll-text-primary)] hover:shadow-[0_0_20px_oklch(0.72_0.17_200/0.08)]",
+        "focus-visible:ring-2 focus-visible:ring-[var(--ll-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ll-bg-base)]"
       )}
     >
-      <Icon size={12} strokeWidth={1.5} />
-      {label}
-    </button>
+      <Icon size={14} strokeWidth={1.75} />
+      <span className="hidden sm:inline">{label}</span>
+    </motion.button>
   );
 }

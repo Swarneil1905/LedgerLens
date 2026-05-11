@@ -103,12 +103,19 @@ export function mapChatMessage(raw: Record<string, unknown>): ChatMessage {
   const followRaw = raw.follow_ups ?? raw.followUps;
   const followUps = Array.isArray(followRaw) ? followRaw.map((item) => readString(item)) : undefined;
 
+  const sourcesRaw = raw.sources;
+  const sources =
+    Array.isArray(sourcesRaw) && sourcesRaw.length > 0
+      ? sourcesRaw.map((item) => mapSource(item as Record<string, unknown>))
+      : undefined;
+
   return {
     id: readString(raw.id),
     role: raw.role === "assistant" ? "assistant" : "user",
     content: readString(raw.content),
     createdAt,
-    ...(followUps && followUps.length > 0 ? { followUps } : {})
+    ...(followUps && followUps.length > 0 ? { followUps } : {}),
+    ...(sources ? { sources } : {})
   };
 }
 
