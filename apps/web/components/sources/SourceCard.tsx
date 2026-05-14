@@ -43,7 +43,7 @@ export function SourceCard({ source }: { source: SourceCardType }) {
           <a
             href={source.url}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide text-[var(--ll-accent)] transition-colors hover:text-[var(--ll-accent-hover)]"
           >
             Open source

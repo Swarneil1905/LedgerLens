@@ -35,6 +35,7 @@
   --ll-source-fred: oklch(0.72 0.15 145);
   --ll-source-news: oklch(0.74 0.16 55);
   --ll-source-chart: oklch(0.72 0.17 200);
+  --ll-source-web: #6366f1;
 
   /* Elevation */
   --ll-shadow-1: 0 1px 2px oklch(0 0 0 / 0.4);

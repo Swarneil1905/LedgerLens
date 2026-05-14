@@ -25,5 +25,5 @@ export type ChatQueryRequest = {
   question: string;
   ticker: string;
   sessionId: string;
-  sourceFilters: Array<"filing" | "macro" | "news" | "chart">;
+  sourceFilters: Array<"filing" | "macro" | "news" | "chart" | "web">;
 };

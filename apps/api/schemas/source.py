@@ -9,6 +9,7 @@ class SourceType(str, Enum):
     MACRO = "macro"
     NEWS = "news"
     CHART = "chart"
+    WEB = "web"
 
 
 class SourceResponse(BaseModel):

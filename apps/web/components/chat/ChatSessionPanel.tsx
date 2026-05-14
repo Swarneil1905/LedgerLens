@@ -24,7 +24,8 @@ type ChatSessionPanelProps = {
 const SOURCE_CHIPS: { label: string; color: string }[] = [
   { label: "SEC", color: "var(--ll-source-sec)" },
   { label: "FRED", color: "var(--ll-source-fred)" },
-  { label: "NEWS", color: "var(--ll-source-news)" }
+  { label: "NEWS", color: "var(--ll-source-news)" },
+  { label: "WEB", color: "var(--ll-source-web)" }
 ];
 
 export function ChatSessionPanel({ sessionId, ticker, initialMessages }: ChatSessionPanelProps) {
@@ -225,7 +226,7 @@ export function ChatSessionPanel({ sessionId, ticker, initialMessages }: ChatSes
               </motion.button>
             ))}
             <span className="ml-auto max-w-[200px] shrink-0 snap-end text-right text-[11px] leading-snug text-[var(--ll-text-tertiary)] max-sm:max-w-[140px]">
-              Grounded on SEC, FRED, and news for {ticker}
+              Grounded on SEC, FRED, news, and web (when enabled) for {ticker}
             </span>
           </div>
 

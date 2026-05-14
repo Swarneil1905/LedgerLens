@@ -1,4 +1,4 @@
-export type SourceType = "filing" | "macro" | "news" | "chart";
+export type SourceType = "filing" | "macro" | "news" | "chart" | "web";
 
 export type SourceCard = {
   id: string;

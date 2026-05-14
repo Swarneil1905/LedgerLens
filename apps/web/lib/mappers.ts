@@ -8,7 +8,13 @@ function readString(value: unknown): string {
 }
 
 function readSourceType(value: unknown): SourceType {
-  if (value === "filing" || value === "macro" || value === "news" || value === "chart") {
+  if (
+    value === "filing" ||
+    value === "macro" ||
+    value === "news" ||
+    value === "chart" ||
+    value === "web"
+  ) {
     return value;
   }
   return "filing";

@@ -8,10 +8,11 @@
 | FRED | `apps/api/data_sources/fred.py` | `FRED_API_KEY`, optional `FRED_SERIES_ID` (default `FEDFUNDS`) | Latest observation for the configured series. Skipped if `FRED_API_KEY` unset. |
 | NewsAPI | `apps/api/data_sources/news_a.py` | `NEWS_API_KEY` | `everything` query by ticker, newest first. Skipped if unset. |
 | Extra wires | `news_b.py`, `news_c.py` | n/a | Return empty lists until additional vendors are wired. |
+| Web search | `apps/api/data_sources/web_search.py` | `WEB_SEARCH_API_KEY`, optional `WEB_SEARCH_PROVIDER` (`serpapi` \| `brave`), `ENABLE_WEB_SEARCH=true` | SerpAPI (default) or Brave. Skipped unless `ENABLE_WEB_SEARCH` is true. URLs are allowlisted before indexing. |
 
 ## Refresh and persistence
 
-- `POST /sources/refresh?ticker=` calls `gather_company_sources`, then `memory.persistence.replace_company_sources`.
+- `POST /sources/refresh?ticker=` runs a parallel `asyncio.gather` in `data_sources/refresh_pipeline.py` (SEC, FRED, news, optional web), then `memory.persistence.replace_company_sources`.
 - When `DATABASE_URL` points at Postgres, sources are stored in `ll_sources` (JSON payload) and `ll_source_chunks` (search slices derived from title + snippet).
 - Large **10-Q / 10-K** excerpts are split into multiple overlapping chunk rows (same `source_id`) via `retrieval/chunk_split.py`, so full‑text search can surface paragraphs about prior‑period comparisons instead of one giant blob. Smaller filings and non‑periodic sources stay as a single chunk.
 - Chat retrieval uses Postgres `tsvector` / `plainto_tsquery` over `ll_source_chunks` when the DB is configured; otherwise the legacy placeholder path still runs.
