@@ -4,16 +4,15 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from dotenv import load_dotenv
-
-# Load ``apps/api/.env`` when present (gitignored). Railway/production use real env vars instead.
-load_dotenv(Path(__file__).resolve().parent / ".env", override=False)
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.middleware import register_middleware
 from api.routes import bookmarks, charts, chat, companies, health, sources, workspace
 from database.config import is_database_configured
+
+# After imports (Ruff E402): load ``apps/api/.env`` when present. Railway uses real env vars.
+load_dotenv(Path(__file__).resolve().parent / ".env", override=False)
 
 logger = logging.getLogger(__name__)
 
