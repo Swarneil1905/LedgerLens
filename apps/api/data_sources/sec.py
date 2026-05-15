@@ -76,7 +76,9 @@ def _html_to_text(html: str) -> str:
     # 1. Remove entire <script>, <style>, and ix:* XBRL tag blocks
     html = re.sub(r"(?is)<script[^>]*>.*?</script>", "", html)
     html = re.sub(r"(?is)<style[^>]*>.*?</style>", "", html)
-    html = re.sub(r"(?is)<ix:[^>]+>.*?</ix:[^>]+>", "", html)
+    # XBRL: strip tags only — keep numeric/text content inside ix:* elements
+    html = re.sub(r"<ix:[^>]+>", "", html, flags=re.IGNORECASE)
+    html = re.sub(r"</ix:[^>]+>", "", html, flags=re.IGNORECASE)
     # 2. Remove all remaining HTML tags
     html = re.sub(r"<[^>]+>", " ", html)
     # 3. Remove XBRL artifacts — booleans, ISO durations, 10-digit IDs
@@ -96,7 +98,7 @@ def _html_to_text(html: str) -> str:
             or re.match(r"^P\d", t, re.IGNORECASE)
             or t.upper() in ("FALSE", "TRUE", "NAN")
         )
-        if len(tokens) > 0 and junk_tokens / len(tokens) > 0.4:
+        if len(tokens) > 0 and junk_tokens / len(tokens) > 0.70:
             continue
         if _line_matches_cover_boilerplate(line):
             continue
@@ -108,8 +110,6 @@ def _html_to_text(html: str) -> str:
     for line in lines:
         stripped = line.strip()
         if re.search(r"\$\s*\$", stripped):
-            continue
-        if "$" in stripped and not re.search(r"\$[\s]*[\d]", stripped):
             continue
         if _line_matches_cover_boilerplate(line):
             continue
