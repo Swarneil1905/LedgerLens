@@ -21,6 +21,53 @@ _TARGET_FORMS = {"10-K", "10-Q", "8-K"}
 # Prefer periodic reports (10-Q before 10-K) so quarterly questions get quarterly text first.
 _FORM_RANK = {"10-Q": 0, "10-K": 1, "8-K": 2}
 
+CONTENT_MARKERS = [
+    "management's discussion and analysis",
+    "item 1. financial statements",
+    "item 1a. risk factors",
+    "part i. financial information",
+    "part i—financial information",
+    "notes to consolidated financial statements",
+    "notes to the interim consolidated",
+    "consolidated statements of operations",
+]
+
+COVER_PAGE_PATTERNS = [
+    r"commission file number",
+    r"securities registered pursuant to section 12",
+    r"indicate by check mark whether",
+    r"has filed all reports required",
+    r"transition report pursuant",
+    r"former name, former address",
+    r"registrant's telephone number",
+    r"washington, d\.c\. 20549",
+    r"form 10-[kq]",
+    r"mark one",
+]
+
+
+def _skip_to_content(text: str) -> str:
+    """Fast-forward past cover page when a clear body marker appears early in the document."""
+    if not text.strip():
+        return text
+    text_lower = text.lower()
+    earliest_pos = len(text)
+    for marker in CONTENT_MARKERS:
+        pos = text_lower.find(marker)
+        if pos >= 0 and pos < earliest_pos:
+            earliest_pos = pos
+    if earliest_pos < len(text) * 0.20:
+        return text[earliest_pos:]
+    return text
+
+
+def _line_matches_cover_boilerplate(line: str) -> bool:
+    line_lower = line.lower()
+    for pattern in COVER_PAGE_PATTERNS:
+        if re.search(pattern, line_lower):
+            return True
+    return False
+
 
 def _html_to_text(html: str) -> str:
     """Strip HTML/XBRL noise from SEC filing documents before excerpting."""
@@ -51,6 +98,8 @@ def _html_to_text(html: str) -> str:
         )
         if len(tokens) > 0 and junk_tokens / len(tokens) > 0.4:
             continue
+        if _line_matches_cover_boilerplate(line):
+            continue
         clean_lines.append(line)
     html = "\n".join(clean_lines)
     # 4b. Remove lines with empty financial table placeholders (empty XBRL table cells)
@@ -61,6 +110,8 @@ def _html_to_text(html: str) -> str:
         if re.search(r"\$\s*\$", stripped):
             continue
         if "$" in stripped and not re.search(r"\$[\s]*[\d]", stripped):
+            continue
+        if _line_matches_cover_boilerplate(line):
             continue
         clean_lines.append(line)
     html = "\n".join(clean_lines)
@@ -90,7 +141,8 @@ async def _fetch_filing_excerpt(
         raw = r.text
         ct = (r.headers.get("content-type") or "").lower()
         if "html" in ct or primary_document.lower().endswith((".htm", ".html")):
-            return _html_to_text(raw)[:_EXCERPT_CHARS]
+            plain = _skip_to_content(_html_to_text(raw))
+            return plain[:_EXCERPT_CHARS]
         return raw.strip()[:_EXCERPT_CHARS]
     except Exception:
         logger.warning("SEC: excerpt fetch failed for %s", url, exc_info=True)
