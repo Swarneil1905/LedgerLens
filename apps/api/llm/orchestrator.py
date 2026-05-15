@@ -69,17 +69,35 @@ async def _resolve_follow_ups_with_cache(
 async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[str, None]:
     prior_messages = get_chat_history(request.session_id)
     context = await assemble_context(request.question, request.ticker)
-    if os.getenv("ENABLE_WEB_SEARCH", "false").lower() == "true":
+    chunks_are_empty = not context.chunks or all(not str(c).strip() for c in context.chunks)
+    web_enabled = os.getenv("ENABLE_WEB_SEARCH", "false").lower() == "true"
+    if web_enabled and chunks_are_empty:
+        logger.info(
+            "No indexed chunks for ticker=%s — falling back to live web search",
+            request.ticker,
+        )
+    if web_enabled:
         try:
             from data_sources.web_search import fetch_web_search, web_rows_to_source_responses
 
             web_rows = await fetch_web_search(request.question, request.ticker)
             web_sources = web_rows_to_source_responses(request.ticker, web_rows)
-            context = context.model_copy(
-                update={"sources": web_sources[:3] + list(context.sources)}
-            )
+            web_chunks: list[str] = []
+            for row in web_rows[:4]:
+                if not isinstance(row, dict):
+                    continue
+                title = str(row.get("title") or "").strip() or "(untitled)"
+                snippet = str(row.get("snippet") or "").strip()
+                if snippet:
+                    line = f"[WEB: {title}] {snippet}".strip()
+                    web_chunks.append(line[:2000])
+                elif title:
+                    web_chunks.append(f"[WEB: {title}]"[:2000])
+            new_chunks = web_chunks + list(context.chunks)
+            new_sources = list(web_sources[:3]) + list(context.sources)
+            context = context.model_copy(update={"chunks": new_chunks, "sources": new_sources})
         except Exception as exc:
-            logger.warning("Live web search failed, continuing without it: %s", exc)
+            logger.warning("Live web search failed: %s", exc)
     sources = _filter_sources(context.sources, request.source_filters)
     periodic_filing_q = question_prefers_periodic_filings(request.question)
     append_chat_message(request.session_id, role="user", content=request.question)
@@ -358,8 +376,10 @@ def _format_rag_context(
         body += (
             "\n\n(Task for this turn: Answer the Question using the filing excerpts and "
             "index lines above only. Do not summarize SEC vs FRED vs news as categories—give "
-            "substantive filing-grounded takeaways. If prior-period figures are missing from "
-            "the excerpts, say exactly what is missing in one sentence.)"
+            "substantive filing-grounded takeaways. You may use live web excerpts when present "
+            "(lines starting with [WEB: …]); cite web figures as [WEB: source title]. Only say "
+            "prior-period filing data is missing if it appears in NONE of the excerpts above, "
+            "including any [WEB: …] lines.)"
         )
     return body
 

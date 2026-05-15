@@ -37,7 +37,10 @@ async def assemble_context(question: str, ticker: str) -> RetrievedContext:
         catalog, reranked, ticker, filings_first=prefer_filings
     )
     token_estimate = len(" ".join(reranked).split()) + sum(len(s.snippet.split()) for s in merged_sources)
-    return RetrievedContext(chunks=reranked, sources=merged_sources, token_count=token_estimate)
+    ctx = RetrievedContext(chunks=reranked, sources=merged_sources, token_count=token_estimate)
+    if ctx.chunks is None:
+        ctx = ctx.model_copy(update={"chunks": []})
+    return ctx
 
 
 def _merge_sources(
