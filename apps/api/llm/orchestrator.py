@@ -356,6 +356,15 @@ def _source_title_lines(sources: list[SourceResponse]) -> list[str]:
     return [f"- {s.title} ({s.source_type.value})" for s in sources[:8]]
 
 
+def _source_index_headline(source: SourceResponse) -> str:
+    """Short label for the numbered source index (matches source panel expectations)."""
+    if source.source_type == SourceType.FILING:
+        form = str(source.metadata.get("form_type") or "").strip()
+        if form:
+            return f"{source.provider} ({form})"
+    return source.provider
+
+
 @dataclass(frozen=True)
 class RagFormatLimits:
     """Keeps Ollama prompts inside num_ctx: filing dumps were routinely >80k chars / index-only."""
@@ -414,9 +423,7 @@ def _format_rag_context(
             )
             if len(snippet) > limits.max_index_snippet_chars:
                 snippet = f"{snippet[: limits.max_index_snippet_chars]}…"
-            lines.append(
-                f"[{idx}] {source.provider} ({source.source_type.value}): {snippet}"
-            )
+            lines.append(f"[{idx}] {_source_index_headline(source)}: {snippet}")
         parts.append("## Source index\n" + "\n".join(lines))
 
     body = "\n\n".join(parts) if parts else "(No context available.)"
@@ -424,10 +431,9 @@ def _format_rag_context(
         body += (
             "\n\n(Task for this turn: Answer the Question using the filing excerpts and "
             "index lines above only. Do not summarize SEC vs FRED vs news as categories—give "
-            "substantive filing-grounded takeaways. You may use live web excerpts when present "
-            "(lines starting with [WEB: …]); cite web figures as [WEB: source title]. Only say "
-            "prior-period filing data is missing if it appears in NONE of the excerpts above, "
-            "including any [WEB: …] lines.)"
+            "substantive filing-grounded takeaways. Use indexed citations [1], [2], … that match "
+            "the Source index above. Only say prior-period filing data is missing if it appears "
+            "in NONE of the excerpts above, including any web-derived lines in the excerpts.)"
         )
     return body
 
