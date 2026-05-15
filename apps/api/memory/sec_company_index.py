@@ -155,6 +155,13 @@ def all_companies() -> list[CompanyResponse]:
     return list(_index or [])
 
 
+def get_company_by_ticker(ticker: str) -> CompanyResponse | None:
+    if not _index:
+        return None
+    ticker_upper = (ticker or "").strip().upper()
+    return next((c for c in _index if c.ticker == ticker_upper), None)
+
+
 def search_companies_sec(query: str, *, limit: int = 25) -> list[CompanyResponse]:
     normalized = query.strip().lower()
     if not normalized:
