@@ -38,7 +38,7 @@ _BRAVE_URL = "https://api.search.brave.com/res/v1/web/search"
 
 _FINANCIAL_SITE_SCOPE = (
     "earnings financials site:reuters.com OR site:bloomberg.com OR site:wsj.com OR "
-    "site:cnbc.com OR site:sec.gov OR site:ir.aboutamazon.com OR site:investor.google.com"
+    "site:cnbc.com OR site:ir.aboutamazon.com OR site:investor.google.com"
 )
 
 BLOCKED_URL_PATTERNS = [
@@ -52,10 +52,18 @@ BLOCKED_URL_PATTERNS = [
     "medium.com",
     "substack.com",
     "youtube.com",
+    "sec.gov",
+    "efts.sec.gov",
 ]
 
 
-def _is_financial_result(url: str, snippet: str) -> bool:
+def _is_financial_result(url: str, snippet: str, title: str) -> bool:
+    title_s = (title or "").strip()
+    snippet_s = (snippet or "").strip()
+    if not title_s or len(title_s) < 5:
+        return False
+    if not snippet_s or len(snippet_s) < 40:
+        return False
     url_lower = (url or "").lower()
     for pattern in BLOCKED_URL_PATTERNS:
         if pattern in url_lower:
@@ -67,8 +75,25 @@ def _is_financial_result(url: str, snippet: str) -> bool:
         "my own opinions",
         "this is not financial advice",
     ]
-    snippet_lower = (snippet or "").lower()
+    snippet_lower = snippet_s.lower()
     return not any(sig in snippet_lower for sig in opinion_signals)
+
+
+def _deduplicate_results(rows: list[dict]) -> list[dict]:
+    seen_snippets: list[set[str]] = []
+    unique: list[dict] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        snippet = str(row.get("snippet") or "").lower()
+        words = set(snippet.split())
+        is_duplicate = any(
+            len(words & seen_words) / max(len(words), 1) > 0.8 for seen_words in seen_snippets
+        )
+        if not is_duplicate:
+            unique.append(row)
+            seen_snippets.append(words)
+    return unique
 
 
 def _sanitize_text(s: str) -> str:
@@ -270,9 +295,14 @@ async def fetch_web_search(query: str, ticker: str) -> list[dict]:
         r
         for r in out
         if isinstance(r, dict)
-        and _is_financial_result(str(r.get("url") or ""), str(r.get("snippet") or ""))
+        and _is_financial_result(
+            str(r.get("url") or ""),
+            str(r.get("snippet") or ""),
+            str(r.get("title") or ""),
+        )
     ]
-    return filtered[:12]
+    deduped = _deduplicate_results(filtered)
+    return deduped[:12]
 
 
 def web_rows_to_source_responses(ticker: str, rows: list[dict]) -> list[SourceResponse]:
