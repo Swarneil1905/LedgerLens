@@ -88,7 +88,7 @@ def get_llm_settings() -> LlmSettings:
     model = os.getenv("OLLAMA_MODEL", "llama3.2:3b").strip() or "llama3.2:3b"
 
     groq_key = (os.getenv("GROQ_API_KEY") or "").strip() or None
-    groq_model = (os.getenv("GROQ_MODEL", "llama-3.1-8b-instant") or "llama-3.1-8b-instant").strip()
+    groq_model = (os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile") or "llama-3.3-70b-versatile").strip()
     if provider == "groq" and not groq_key:
         raise ConfigError(
             "GROQ_API_KEY is required when LLM_PROVIDER=groq. Get a free key at https://console.groq.com"
