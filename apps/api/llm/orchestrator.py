@@ -83,8 +83,17 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
     if web_enabled:
         try:
             from data_sources.web_search import fetch_web_search, web_rows_to_source_responses
+            from memory.sec_company_index import get_company_by_ticker, load_company_index
 
-            web_rows = await fetch_web_search(request.question, request.ticker)
+            await load_company_index()
+            company = get_company_by_ticker(request.ticker)
+            company_name = company.name if company else request.ticker
+
+            web_rows = await fetch_web_search(
+                request.question,
+                request.ticker,
+                company_name=company_name,
+            )
             web_sources = web_rows_to_source_responses(request.ticker, web_rows)
             web_chunks: list[str] = []
             for row in web_rows[:4]:
