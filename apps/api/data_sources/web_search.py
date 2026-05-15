@@ -36,6 +36,40 @@ BLOCKED_DOMAINS: frozenset[str] = frozenset(
 _SERPAPI_URL = "https://serpapi.com/search"
 _BRAVE_URL = "https://api.search.brave.com/res/v1/web/search"
 
+_FINANCIAL_SITE_SCOPE = (
+    "earnings financials site:reuters.com OR site:bloomberg.com OR site:wsj.com OR "
+    "site:cnbc.com OR site:sec.gov OR site:ir.aboutamazon.com OR site:investor.google.com"
+)
+
+BLOCKED_URL_PATTERNS = [
+    "reddit.com",
+    "seekingalpha.com/instablog",
+    "twitter.com",
+    "x.com",
+    "quora.com",
+    "glassdoor.com",
+    "linkedin.com",
+    "medium.com",
+    "substack.com",
+    "youtube.com",
+]
+
+
+def _is_financial_result(url: str, snippet: str) -> bool:
+    url_lower = (url or "").lower()
+    for pattern in BLOCKED_URL_PATTERNS:
+        if pattern in url_lower:
+            return False
+    opinion_signals = [
+        "i wrote this article",
+        "past performance is no guarantee",
+        "not receiving compensation",
+        "my own opinions",
+        "this is not financial advice",
+    ]
+    snippet_lower = (snippet or "").lower()
+    return not any(sig in snippet_lower for sig in opinion_signals)
+
 
 def _sanitize_text(s: str) -> str:
     return s.replace("\x00", "").strip()[:4000]
@@ -141,9 +175,9 @@ async def fetch_web_search(query: str, ticker: str) -> list[dict]:
             "WEB_SEARCH_API_KEY is not set or is empty. Set it to your SerpAPI or Brave Search API key."
         )
 
-    # Brave/SerpAPI `q`: combined company + user question (capped); never ticker-only.
     tick = (ticker or "").strip().upper() or "UNKNOWN"
-    safe_query = f"{tick} {query.strip()}".strip()[:200]
+    q_core = f"{tick} {query.strip()} {_FINANCIAL_SITE_SCOPE}".strip()
+    safe_query = q_core[:1200]
 
     provider = _detect_provider()
     out: list[dict] = []
@@ -232,7 +266,13 @@ async def fetch_web_search(query: str, ticker: str) -> list[dict]:
         logger.warning("Web search failed for %s: %s", tick, exc)
         return []
 
-    return out[:12]
+    filtered = [
+        r
+        for r in out
+        if isinstance(r, dict)
+        and _is_financial_result(str(r.get("url") or ""), str(r.get("snippet") or ""))
+    ]
+    return filtered[:12]
 
 
 def web_rows_to_source_responses(ticker: str, rows: list[dict]) -> list[SourceResponse]:

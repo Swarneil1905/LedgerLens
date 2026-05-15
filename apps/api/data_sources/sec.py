@@ -22,12 +22,43 @@ _TARGET_FORMS = {"10-K", "10-Q", "8-K"}
 _FORM_RANK = {"10-Q": 0, "10-K": 1, "8-K": 2}
 
 
-def _html_to_plain(html: str) -> str:
-    html = re.sub(r"(?is)<script[^>]*>.*?</script>", " ", html)
-    html = re.sub(r"(?is)<style[^>]*>.*?</style>", " ", html)
-    html = re.sub(r"(?s)<!--.*?-->", " ", html)
+def _html_to_text(html: str) -> str:
+    """Strip HTML/XBRL noise from SEC filing documents before excerpting."""
+    # 0. Strip HTML comments (not in user spec; keeps MD&A tables cleaner)
+    html = re.sub(r"(?s)<!--.*?-->", "", html)
+    # 1. Remove entire <script>, <style>, and ix:* XBRL tag blocks
+    html = re.sub(r"(?is)<script[^>]*>.*?</script>", "", html)
+    html = re.sub(r"(?is)<style[^>]*>.*?</style>", "", html)
+    html = re.sub(r"(?is)<ix:[^>]+>.*?</ix:[^>]+>", "", html)
+    # 2. Remove all remaining HTML tags
     html = re.sub(r"<[^>]+>", " ", html)
-    return re.sub(r"\s+", " ", html).strip()
+    # 3. Remove XBRL artifacts — booleans, ISO durations, 10-digit IDs
+    html = re.sub(r"\b(FALSE|TRUE|P\d+Y\w*|\d{10})\b", "", html, flags=re.IGNORECASE)
+    # 4. Drop lines that are mostly dates / IDs / duration tokens
+    lines = html.splitlines()
+    clean_lines: list[str] = []
+    for line in lines:
+        tokens = line.split()
+        if not tokens:
+            continue
+        junk_tokens = sum(
+            1
+            for t in tokens
+            if re.match(r"^\d{4}-\d{2}-\d{2}$", t)
+            or re.match(r"^\d{8,}$", t)
+            or re.match(r"^P\d", t, re.IGNORECASE)
+            or t.upper() in ("FALSE", "TRUE", "NAN")
+        )
+        if len(tokens) > 0 and junk_tokens / len(tokens) > 0.4:
+            continue
+        clean_lines.append(line)
+    html = "\n".join(clean_lines)
+    # 5. Collapse whitespace
+    html = re.sub(r"\s{3,}", "\n\n", html)
+    html = re.sub(r"[ \t]+", " ", html)
+    # 6. Remove null bytes and non-printable characters
+    html = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", html)
+    return html.strip()
 
 
 def _archives_url(cik: int, accession: str, primary_document: str) -> str:
@@ -48,7 +79,7 @@ async def _fetch_filing_excerpt(
         raw = r.text
         ct = (r.headers.get("content-type") or "").lower()
         if "html" in ct or primary_document.lower().endswith((".htm", ".html")):
-            return _html_to_plain(raw)[:_EXCERPT_CHARS]
+            return _html_to_text(raw)[:_EXCERPT_CHARS]
         return raw.strip()[:_EXCERPT_CHARS]
     except Exception:
         logger.warning("SEC: excerpt fetch failed for %s", url, exc_info=True)

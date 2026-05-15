@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from schemas.source import SourceResponse, SourceType
 
 MAX_CHARS_PER_CHUNK = 6200
@@ -9,6 +11,20 @@ CHUNK_OVERLAP = 450
 MIN_BODY_CHARS_TO_SPLIT = 8500
 MAX_SUB_CHUNKS_PER_SOURCE = 24
 CONTENT_HARD_CAP = 52000
+
+
+def _is_meaningful_chunk(text: str) -> bool:
+    words = text.split()
+    if not words:
+        return False
+    # Long single "word" is usually stripped markup / XBRL garbage, not prose.
+    if len(words) == 1 and len(words[0]) > 400:
+        return False
+    numeric = sum(1 for w in words if re.match(r"^[\d\-\.\/]+$", w))
+    ratio = numeric / len(words) if words else 1.0
+    if len(words) >= 20:
+        return ratio < 0.30
+    return len(words) >= 3 and ratio < 0.35
 
 
 def source_should_split(s: SourceResponse) -> bool:
@@ -81,7 +97,9 @@ def index_slices_for_source(s: SourceResponse) -> list[str]:
             chunk = head + p
             if len(chunk) > CONTENT_HARD_CAP:
                 chunk = chunk[:CONTENT_HARD_CAP]
-            out.append(chunk)
+            if _is_meaningful_chunk(chunk):
+                out.append(chunk)
         return out
 
-    return [body[:CONTENT_HARD_CAP]]
+    single = body[:CONTENT_HARD_CAP]
+    return [single] if _is_meaningful_chunk(single) else []

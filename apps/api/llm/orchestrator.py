@@ -27,6 +27,8 @@ from schemas.source import SourceResponse, SourceType
 
 logger = logging.getLogger(__name__)
 
+MAX_STREAM_SECONDS = 45
+
 _followup_cache: OrderedDict[str, list[str]] = OrderedDict()
 
 
@@ -181,9 +183,54 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
                     temperature=settings.ollama_chat_temperature,
                     max_tokens=settings.ollama_chat_num_predict,
                 )
-            async for delta in stream_iter:
-                parts.append(delta)
-                yield format_sse("text", {"chunk": delta})
+            try:
+                async with asyncio.timeout(MAX_STREAM_SECONDS):
+                    async for delta in stream_iter:
+                        parts.append(delta)
+                        yield format_sse("text", {"chunk": delta})
+            except asyncio.TimeoutError:
+                logger.warning(
+                    "LLM stream timed out after %ss — retrying with reduced context",
+                    MAX_STREAM_SECONDS,
+                )
+                parts.clear()
+                reduced_block = _format_rag_context(
+                    context,
+                    request.question,
+                    sources_for_prompt=sources,
+                    filings_only_for_index=periodic_filing_q,
+                    limits=REDUCED_RAG_LIMITS,
+                )
+                reduced_block = context_note + reduced_block
+                user_prompt_retry = build_answer_prompt(
+                    request.ticker, request.question, reduced_block
+                )
+                ollama_messages_retry = build_ollama_message_list(
+                    system_prompt=SYSTEM_PROMPT.strip(),
+                    prior_turns=prior_messages,
+                    current_user_content=user_prompt_retry,
+                )
+                if settings.provider == "ollama":
+                    stream_iter_retry = stream_ollama_chat(
+                        base_url=settings.ollama_base_url,
+                        model=settings.ollama_model,
+                        messages=ollama_messages_retry,
+                        temperature=settings.ollama_chat_temperature,
+                        top_p=settings.ollama_chat_top_p,
+                        num_predict=settings.ollama_chat_num_predict,
+                        num_ctx=settings.ollama_chat_num_ctx,
+                    )
+                else:
+                    stream_iter_retry = stream_groq_chat(
+                        messages=ollama_messages_retry,
+                        model=settings.groq_model,
+                        temperature=settings.ollama_chat_temperature,
+                        max_tokens=settings.ollama_chat_num_predict,
+                    )
+                async with asyncio.timeout(MAX_STREAM_SECONDS):
+                    async for delta in stream_iter_retry:
+                        parts.append(delta)
+                        yield format_sse("text", {"chunk": delta})
             answer = "".join(parts)
         except Exception as exc:
             ollama_error = str(exc).strip()[:400]
@@ -320,6 +367,7 @@ class RagFormatLimits:
 
 
 OLLAMA_RAG_LIMITS = RagFormatLimits()
+REDUCED_RAG_LIMITS = RagFormatLimits(max_chunks=3, max_polished_chunk_chars=800)
 
 
 def _format_rag_context(
