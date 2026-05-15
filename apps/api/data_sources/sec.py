@@ -53,6 +53,17 @@ def _html_to_text(html: str) -> str:
             continue
         clean_lines.append(line)
     html = "\n".join(clean_lines)
+    # 4b. Remove lines with empty financial table placeholders (empty XBRL table cells)
+    lines = html.splitlines()
+    clean_lines = []
+    for line in lines:
+        stripped = line.strip()
+        if re.search(r"\$\s*\$", stripped):
+            continue
+        if "$" in stripped and not re.search(r"\$[\s]*[\d]", stripped):
+            continue
+        clean_lines.append(line)
+    html = "\n".join(clean_lines)
     # 5. Collapse whitespace
     html = re.sub(r"\s{3,}", "\n\n", html)
     html = re.sub(r"[ \t]+", " ", html)
