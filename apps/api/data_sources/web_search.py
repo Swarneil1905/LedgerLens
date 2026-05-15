@@ -96,6 +96,17 @@ def _deduplicate_results(rows: list[dict]) -> list[dict]:
     return unique
 
 
+def _result_matches_company(row: dict, ticker: str, company_name: str) -> bool:
+    text = (str(row.get("title", "")) + " " + str(row.get("snippet", ""))).lower()
+    ticker_lower = (ticker or "").strip().lower()
+    if ticker_lower and ticker_lower in text:
+        return True
+    parts = (company_name or "").strip().lower().split()
+    if parts and parts[0] in text:
+        return True
+    return False
+
+
 def _sanitize_text(s: str) -> str:
     return s.replace("\x00", "").strip()[:4000]
 
@@ -188,7 +199,11 @@ def _detect_provider() -> str:
     return "serpapi"
 
 
-async def fetch_web_search(query: str, ticker: str) -> list[dict]:
+async def fetch_web_search(
+    query: str,
+    ticker: str,
+    company_name: str = "",
+) -> list[dict]:
     """
     Run a web search for the ticker-scoped query.
 
@@ -201,8 +216,9 @@ async def fetch_web_search(query: str, ticker: str) -> list[dict]:
         )
 
     tick = (ticker or "").strip().upper() or "UNKNOWN"
-    q_core = f"{tick} {query.strip()} {_FINANCIAL_SITE_SCOPE}".strip()
-    safe_query = q_core[:1200]
+    name_part = company_name.strip() if company_name.strip() else tick
+    core = f'"{name_part}" {tick} {query.strip()}'.strip()
+    safe_query = f"{core} {_FINANCIAL_SITE_SCOPE}".strip()[:1200]
 
     provider = _detect_provider()
     out: list[dict] = []
@@ -291,9 +307,14 @@ async def fetch_web_search(query: str, ticker: str) -> list[dict]:
         logger.warning("Web search failed for %s: %s", tick, exc)
         return []
 
-    filtered = [
+    scoped = [
         r
         for r in out
+        if isinstance(r, dict) and _result_matches_company(r, ticker, company_name or name_part)
+    ]
+    filtered = [
+        r
+        for r in scoped
         if isinstance(r, dict)
         and _is_financial_result(
             str(r.get("url") or ""),
