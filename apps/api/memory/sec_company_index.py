@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Final
 
 import httpx
@@ -16,10 +18,9 @@ _TICKER_JSON_URL: Final[str] = "https://www.sec.gov/files/company_tickers.json"
 # Large JSON; keep bounded so Railway does not 502 while waiting on SEC.
 _TICKER_HTTP_TIMEOUT: Final[httpx.Timeout] = httpx.Timeout(22.0, connect=5.0, read=18.0)
 
-# Single-flight SEC fetch: never hold a lock across the HTTP call — concurrent searches
-# would otherwise serialize for tens of seconds and each client hits proxy timeouts (502).
+LOCAL_INDEX_PATH = Path(__file__).resolve().parent.parent / "data" / "company_tickers.json"
+
 _coord_lock = asyncio.Lock()
-_load_task: asyncio.Task[None] | None = None
 _index: list[CompanyResponse] | None = None
 _index_loaded_at: datetime | None = None
 _index_error: str | None = None
@@ -70,6 +71,25 @@ def _parse_company_tickers_payload(payload: object) -> list[CompanyResponse]:
     return out
 
 
+async def _load_from_local() -> list[CompanyResponse] | None:
+    try:
+        raw = await asyncio.to_thread(lambda: LOCAL_INDEX_PATH.read_text(encoding="utf-8"))
+        payload = json.loads(raw)
+        parsed = _parse_company_tickers_payload(payload)
+        return parsed if parsed else None
+    except Exception as exc:
+        logger.warning("Local company index missing or unreadable: %s", exc)
+        return None
+
+
+async def _refresh_from_sec_background() -> None:
+    """Refresh from SEC without clearing an existing in-memory index on failure."""
+    try:
+        await _fetch_company_index_from_sec(force=False)
+    except Exception:
+        logger.exception("Background SEC company index refresh failed")
+
+
 async def _fetch_company_index_from_sec(*, force: bool) -> None:
     """Perform one SEC download + parse (no locks held by caller across awaits)."""
     global _index, _index_loaded_at, _index_error
@@ -92,6 +112,7 @@ async def _fetch_company_index_from_sec(*, force: bool) -> None:
             _index = parsed
             _index_loaded_at = datetime.now(timezone.utc)
             _index_error = None
+            logger.info("Company index refreshed from SEC (%d entries)", len(parsed))
     except Exception as exc:
         _index_error = str(exc)
         logger.warning("SEC company index load failed: %s", exc, exc_info=True)
@@ -100,20 +121,26 @@ async def _fetch_company_index_from_sec(*, force: bool) -> None:
 
 
 async def load_company_index(*, force: bool = False) -> None:
-    """Ensure SEC company_tickers.json is loaded (single in-flight fetch shared by all callers)."""
-    global _load_task
+    """Load bundled index first; refresh from SEC in the background when local succeeds."""
+    global _index, _index_loaded_at, _index_error
 
-    if _index is not None and not force:
+    if force:
+        await _fetch_company_index_from_sec(force=True)
         return
 
     async with _coord_lock:
-        if _index is not None and not force:
+        if _index is not None:
             return
-        if _load_task is None or _load_task.done():
-            _load_task = asyncio.create_task(_fetch_company_index_from_sec(force=force))
-        wait_on = _load_task
 
-    await wait_on
+        local = await _load_from_local()
+        if local:
+            _index = local
+            _index_loaded_at = datetime.now(timezone.utc)
+            _index_error = None
+            logger.info("Company index loaded from local file (%d entries)", len(local))
+            asyncio.create_task(_refresh_from_sec_background())
+        else:
+            await _fetch_company_index_from_sec(force=False)
 
 
 def company_index_error() -> str | None:

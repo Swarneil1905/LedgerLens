@@ -28,6 +28,14 @@ async def lifespan(_: FastAPI):
         except Exception:
             logger.exception("ledgerlens: postgres schema init failed; API will keep running without DB tables")
 
+    try:
+        from memory.sec_company_index import load_company_index
+
+        await load_company_index()
+        logger.info("Company index pre-warmed at startup")
+    except Exception:
+        logger.exception("Company index pre-warm failed; searches may return 503 until load succeeds")
+
     yield
 
 
