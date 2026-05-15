@@ -1,6 +1,8 @@
 import asyncio
 import logging
+from collections import OrderedDict
 from collections.abc import AsyncGenerator
+from contextlib import suppress
 from dataclasses import dataclass
 from typing import Literal
 
@@ -11,6 +13,7 @@ from llm.followups import (
     parse_followup_json,
     template_followups,
 )
+from llm.groq_client import complete_groq_chat, stream_groq_chat
 from llm.ollama import complete_ollama_chat, stream_ollama_chat
 from llm.context_cleanup import focus_excerpt_on_question, scrub_excerpt_text
 from llm.prompts import SYSTEM_PROMPT, build_answer_prompt, build_ollama_message_list
@@ -23,6 +26,44 @@ from schemas.source import SourceResponse, SourceType
 
 logger = logging.getLogger(__name__)
 
+_followup_cache: OrderedDict[str, list[str]] = OrderedDict()
+
+
+def _followup_cache_key(ticker: str, question: str) -> str:
+    return f"{ticker}:{question[:80]}"
+
+
+def _followup_cache_get(key: str) -> list[str] | None:
+    if key not in _followup_cache:
+        return None
+    return list(_followup_cache[key])
+
+
+def _followup_cache_set(key: str, value: list[str]) -> None:
+    if key in _followup_cache:
+        del _followup_cache[key]
+    _followup_cache[key] = list(value)
+    if len(_followup_cache) > 100:
+        for _ in range(20):
+            if not _followup_cache:
+                break
+            _followup_cache.popitem(last=False)
+
+
+async def _resolve_follow_ups_with_cache(
+    settings,
+    request: ChatQueryRequest,
+    sources: list[SourceResponse],
+    answer: str,
+) -> list[str]:
+    key = _followup_cache_key(request.ticker, request.question)
+    hit = _followup_cache_get(key)
+    if hit is not None:
+        return hit
+    out = await _resolve_follow_ups(settings, request, sources, answer)
+    _followup_cache_set(key, out)
+    return out
+
 
 async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[str, None]:
     prior_messages = get_chat_history(request.session_id)
@@ -32,26 +73,41 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
     append_chat_message(request.session_id, role="user", content=request.question)
 
     settings = get_llm_settings()
-    will_use_ollama = settings.provider == "ollama" and bool(sources)
+    will_use_llm = settings.provider in ("ollama", "groq") and bool(sources)
+    stream_label = settings.provider if will_use_llm else "template"
     meta_payload: dict[str, str | None] = {
         "envLlmProvider": settings.provider,
-        "answerStream": "ollama" if will_use_ollama else "template",
+        "answerStream": stream_label,
     }
     if settings.provider == "ollama":
         meta_payload["ollamaModel"] = settings.ollama_model
+    if settings.provider == "groq":
+        meta_payload["groqModel"] = settings.groq_model
     yield format_sse("meta", meta_payload)
 
     answer: str
     followups: list[str]
     ollama_error: str | None = None
 
-    if settings.provider == "ollama" and sources:
+    if settings.provider in ("ollama", "groq") and sources:
         parts: list[str] = []
+        stream_done = asyncio.Event()
+        cache_key = _followup_cache_key(request.ticker, request.question)
+
+        async def followups_worker() -> list[str]:
+            hit = _followup_cache_get(cache_key)
+            if hit is not None:
+                return hit
+            await stream_done.wait()
+            out = await _resolve_follow_ups(settings, request, sources, "".join(parts))
+            _followup_cache_set(cache_key, out)
+            return out
+
+        followup_task = asyncio.create_task(followups_worker())
         try:
             logger.info(
-                "chat: streaming via Ollama base_url=%s model=%s ticker=%s",
-                settings.ollama_base_url,
-                settings.ollama_model,
+                "chat: streaming via %s ticker=%s",
+                settings.provider,
                 request.ticker,
             )
             context_block = _format_rag_context(
@@ -69,29 +125,50 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
                 prior_turns=prior_messages,
                 current_user_content=user_prompt,
             )
-            async for delta in stream_ollama_chat(
-                base_url=settings.ollama_base_url,
-                model=settings.ollama_model,
-                messages=ollama_messages,
-                temperature=settings.ollama_chat_temperature,
-                top_p=settings.ollama_chat_top_p,
-                num_predict=settings.ollama_chat_num_predict,
-                num_ctx=settings.ollama_chat_num_ctx,
-            ):
+            if settings.provider == "ollama":
+                stream_iter = stream_ollama_chat(
+                    base_url=settings.ollama_base_url,
+                    model=settings.ollama_model,
+                    messages=ollama_messages,
+                    temperature=settings.ollama_chat_temperature,
+                    top_p=settings.ollama_chat_top_p,
+                    num_predict=settings.ollama_chat_num_predict,
+                    num_ctx=settings.ollama_chat_num_ctx,
+                )
+            else:
+                stream_iter = stream_groq_chat(
+                    messages=ollama_messages,
+                    model=settings.groq_model,
+                    temperature=settings.ollama_chat_temperature,
+                    max_tokens=settings.ollama_chat_num_predict,
+                )
+            async for delta in stream_iter:
                 parts.append(delta)
                 yield format_sse("text", {"chunk": delta})
             answer = "".join(parts)
-            followups = await _resolve_follow_ups(settings, request, sources, answer)
         except Exception as exc:
             ollama_error = str(exc).strip()[:400]
-            logger.exception("Ollama chat failed; using excerpt fallback (%s)", ollama_error)
+            logger.exception(
+                "%s chat failed; using excerpt fallback (%s)",
+                settings.provider,
+                ollama_error,
+            )
+            if not followup_task.done():
+                followup_task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await followup_task
             answer = _compose_answer(
                 request.question, request.ticker, sources, answer_mode="ollama_unavailable"
             )
             for token in answer.split(" "):
                 yield format_sse("text", {"chunk": f"{token} "})
                 await asyncio.sleep(0.008)
-            followups = await _resolve_follow_ups(settings, request, sources, answer)
+            followups = await _resolve_follow_ups_with_cache(
+                settings, request, sources, answer
+            )
+        else:
+            stream_done.set()
+            followups = await followup_task
     else:
         answer = _compose_answer(
             request.question,
@@ -102,7 +179,7 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
         for token in answer.split(" "):
             yield format_sse("text", {"chunk": f"{token} "})
             await asyncio.sleep(0.008)
-        followups = await _resolve_follow_ups(settings, request, sources, answer)
+        followups = await _resolve_follow_ups_with_cache(settings, request, sources, answer)
 
     yield format_sse("sources", {"sources": [source.model_dump(mode="json") for source in sources]})
     yield format_sse("followups", {"followUps": followups})
@@ -144,21 +221,33 @@ async def _resolve_follow_ups(
             "Narrow the question to a single filing topic?",
         ]
     trimmed = answer.strip()
-    if settings.provider == "ollama" and len(trimmed) > 50:
+    if settings.provider in ("ollama", "groq") and len(trimmed) > 50:
         try:
-            raw = await complete_ollama_chat(
-                base_url=settings.ollama_base_url,
-                model=settings.ollama_model,
-                system_prompt=FOLLOWUP_SYSTEM.strip(),
-                user_prompt=build_followup_user_message(
-                    ticker=request.ticker,
-                    question=request.question,
-                    answer=trimmed,
-                    indexed_source_lines=_source_title_lines(sources),
-                ),
-                temperature=0.45,
-                num_predict=380,
+            user_content = build_followup_user_message(
+                ticker=request.ticker,
+                question=request.question,
+                answer=trimmed,
+                indexed_source_lines=_source_title_lines(sources),
             )
+            if settings.provider == "groq":
+                raw = await complete_groq_chat(
+                    messages=[
+                        {"role": "system", "content": FOLLOWUP_SYSTEM.strip()},
+                        {"role": "user", "content": user_content},
+                    ],
+                    model=settings.groq_model,
+                    temperature=0.45,
+                    max_tokens=380,
+                )
+            else:
+                raw = await complete_ollama_chat(
+                    base_url=settings.ollama_base_url,
+                    model=settings.ollama_model,
+                    system_prompt=FOLLOWUP_SYSTEM.strip(),
+                    user_prompt=user_content,
+                    temperature=0.45,
+                    num_predict=380,
+                )
             parsed = parse_followup_json(raw)
             if len(parsed) >= 3:
                 return [item[:160] for item in parsed[:3]]
@@ -185,8 +274,8 @@ def _source_title_lines(sources: list[SourceResponse]) -> list[str]:
 class RagFormatLimits:
     """Keeps Ollama prompts inside num_ctx: filing dumps were routinely >80k chars / index-only."""
 
-    max_chunks: int = 7
-    max_polished_chunk_chars: int = 2200
+    max_chunks: int = 6
+    max_polished_chunk_chars: int = 1500
     max_index_sources: int = 7
     max_index_snippet_chars: int = 680
 

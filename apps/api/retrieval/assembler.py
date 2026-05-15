@@ -15,6 +15,13 @@ class RetrievedContext(BaseModel):
     token_count: int
 
 
+def _truncate_chunks(chunks: list[str], max_len: int = 1500) -> list[str]:
+    out: list[str] = []
+    for c in chunks:
+        out.append(c[:max_len] if len(c) > max_len else c)
+    return out
+
+
 async def assemble_context(question: str, ticker: str) -> RetrievedContext:
     prefer_filings = question_prefers_periodic_filings(question)
     expansions = expand_query(question, ticker)
@@ -22,8 +29,9 @@ async def assemble_context(question: str, ticker: str) -> RetrievedContext:
         " ".join(expansions),
         ticker,
         prefer_periodic_filings=prefer_filings,
+        limit=6,
     )
-    reranked = rerank_chunks(retrieved)
+    reranked = _truncate_chunks(rerank_chunks(retrieved))
     catalog = get_company_sources(ticker)
     merged_sources = _merge_sources(
         catalog, reranked, ticker, filings_first=prefer_filings

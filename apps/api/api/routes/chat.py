@@ -18,6 +18,8 @@ async def query_chat(request: ChatQueryRequest) -> StreamingResponse:
     }
     if llm.provider == "ollama":
         headers["X-LedgerLens-Ollama-Model"] = llm.ollama_model
+    if llm.provider == "groq":
+        headers["X-LedgerLens-Groq-Model"] = llm.groq_model
     return StreamingResponse(
         generate_grounded_answer(request),
         media_type="text/event-stream",

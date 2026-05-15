@@ -4,7 +4,11 @@ from typing import Literal
 from urllib.parse import urlparse, urlunparse
 
 
-LlmProvider = Literal["stub", "ollama"]
+class ConfigError(ValueError):
+    """Raised when LLM-related environment configuration is invalid or incomplete."""
+
+
+LlmProvider = Literal["stub", "ollama", "groq"]
 
 
 def normalize_ollama_base_url(raw: str) -> str:
@@ -67,19 +71,37 @@ class LlmSettings:
     ollama_chat_top_p: float
     ollama_chat_num_predict: int
     ollama_chat_num_ctx: int | None
+    groq_api_key: str | None
+    groq_model: str
 
 
 def get_llm_settings() -> LlmSettings:
     raw = os.getenv("LLM_PROVIDER", "stub").strip().lower()
-    provider: LlmProvider = "ollama" if raw == "ollama" else "stub"
+    if raw == "groq":
+        provider: LlmProvider = "groq"
+    elif raw == "ollama":
+        provider = "ollama"
+    else:
+        provider = "stub"
+
     base = normalize_ollama_base_url(os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434"))
     model = os.getenv("OLLAMA_MODEL", "llama3.2:3b").strip() or "llama3.2:3b"
+
+    groq_key = (os.getenv("GROQ_API_KEY") or "").strip() or None
+    groq_model = (os.getenv("GROQ_MODEL", "llama-3.1-8b-instant") or "llama-3.1-8b-instant").strip()
+    if provider == "groq" and not groq_key:
+        raise ConfigError(
+            "GROQ_API_KEY is required when LLM_PROVIDER=groq. Get a free key at https://console.groq.com"
+        )
+
     return LlmSettings(
         provider=provider,
         ollama_base_url=base,
         ollama_model=model,
         ollama_chat_temperature=_env_float("OLLAMA_CHAT_TEMPERATURE", 0.3),
         ollama_chat_top_p=_env_float("OLLAMA_CHAT_TOP_P", 0.88),
-        ollama_chat_num_predict=_env_positive_int("OLLAMA_CHAT_NUM_PREDICT", 1200),
+        ollama_chat_num_predict=_env_positive_int("OLLAMA_CHAT_NUM_PREDICT", 800),
         ollama_chat_num_ctx=_env_optional_positive_int("OLLAMA_NUM_CTX"),
+        groq_api_key=groq_key,
+        groq_model=groq_model,
     )
