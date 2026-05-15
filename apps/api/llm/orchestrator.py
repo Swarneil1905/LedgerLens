@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 from collections import OrderedDict
 from collections.abc import AsyncGenerator
 from contextlib import suppress
@@ -68,6 +69,17 @@ async def _resolve_follow_ups_with_cache(
 async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[str, None]:
     prior_messages = get_chat_history(request.session_id)
     context = await assemble_context(request.question, request.ticker)
+    if os.getenv("ENABLE_WEB_SEARCH", "false").lower() == "true":
+        try:
+            from data_sources.web_search import fetch_web_search, web_rows_to_source_responses
+
+            web_rows = await fetch_web_search(request.question, request.ticker)
+            web_sources = web_rows_to_source_responses(request.ticker, web_rows)
+            context = context.model_copy(
+                update={"sources": web_sources[:3] + list(context.sources)}
+            )
+        except Exception as exc:
+            logger.warning("Live web search failed, continuing without it: %s", exc)
     sources = _filter_sources(context.sources, request.source_filters)
     periodic_filing_q = question_prefers_periodic_filings(request.question)
     append_chat_message(request.session_id, role="user", content=request.question)
@@ -117,6 +129,15 @@ async def generate_grounded_answer(request: ChatQueryRequest) -> AsyncGenerator[
                 filings_only_for_index=periodic_filing_q,
                 limits=OLLAMA_RAG_LIMITS,
             )
+            web_count = sum(1 for s in sources if s.source_type == SourceType.WEB)
+            if web_count > 0:
+                context_note = (
+                    f"NOTE: {web_count} live web result(s) retrieved for this specific question "
+                    "are included below.\n\n"
+                )
+            else:
+                context_note = ""
+            context_block = context_note + context_block
             user_prompt = build_answer_prompt(
                 request.ticker, request.question, context_block
             )

@@ -141,9 +141,8 @@ async def fetch_web_search(query: str, ticker: str) -> list[dict]:
             "WEB_SEARCH_API_KEY is not set or is empty. Set it to your SerpAPI or Brave Search API key."
         )
 
-    tick = ticker.strip().upper()
-    if not tick:
-        tick = "UNKNOWN"
+    # Brave/SerpAPI `q`: combined company + user question (capped); never ticker-only.
+    tick = (ticker or "").strip().upper() or "UNKNOWN"
     safe_query = f"{tick} {query.strip()}".strip()[:200]
 
     provider = _detect_provider()
